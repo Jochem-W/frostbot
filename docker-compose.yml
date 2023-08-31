@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  db:
+    container_name: goobism-db
+    image: postgres:15
+    env_file: .env.db
+    environment:
+      POSTGRES_USER: goobism
+    volumes:
+      - ./persisted/db/data:/var/lib/postgresql/data
+    restart: unless-stopped
+    ports:
+      - 5433:5432
+  app:
+    container_name: goobism-app
+    build: ../goobism-app
+    restart: unless-stopped
+    networks:
+      - caddy_caddy
+      - default
+  bot:
+    build: .
+    env_file: .env
+    volumes:
+      - ./persisted/bot:/app/persisted/bot
+    restart: unless-stopped
+    depends_on:
+      - db
+
+networks:
+  caddy_caddy:
+    external: true
