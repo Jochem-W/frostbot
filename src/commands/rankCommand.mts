@@ -10,6 +10,7 @@ import puppeteer from "puppeteer"
 const browser = await puppeteer.launch({
   headless: "new",
   defaultViewport: { width: 1024, height: 384 },
+  args: !Variables.sandbox ? ["--no-sandbox"] : [],
 })
 
 const page = await browser.newPage()

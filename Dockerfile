@@ -1,6 +1,7 @@
 # Set-up build image
 FROM node:20-alpine AS builder
-ENV NODE_ENV=development
+ENV NODE_ENV=development \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true 
 
 WORKDIR /app
 
@@ -23,11 +24,12 @@ RUN pnpm tsc && \
 FROM node:20-alpine
 ARG commit_hash
 ENV NODE_ENV=production \
-    COMMIT_HASH=$commit_hash
+    COMMIT_HASH=$commit_hash \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 WORKDIR /app
 
-# Install ImageMagick
-RUN apk add --no-cache imagemagick
+# Install Chromium
+RUN apk add --no-cache chromium
 
 # Copy all files (including source :/)
 COPY --from=builder /app .
