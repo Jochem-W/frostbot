@@ -7,11 +7,17 @@ import { AttachmentBuilder, SlashCommandUserOption } from "discord.js"
 import { sql } from "drizzle-orm"
 import puppeteer from "puppeteer"
 
-const browser = await puppeteer.launch({
-  headless: "new",
-  defaultViewport: { width: 1024, height: 384 },
-  args: !Variables.sandbox ? ["--no-sandbox"] : [],
-})
+const defaultViewport = { width: 1024, height: 384 }
+
+let browser
+if (Variables.puppeteerWs) {
+  browser = await puppeteer.connect({
+    browserWSEndpoint: Variables.puppeteerWs,
+    defaultViewport,
+  })
+} else {
+  browser = await puppeteer.launch({ headless: "new", defaultViewport })
+}
 
 const page = await browser.newPage()
 await page.setJavaScriptEnabled(false)
