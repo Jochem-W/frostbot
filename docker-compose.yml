@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     ports:
       - 5433:5432
-  app:
+  webapp:
     container_name: goobism-app
     build: ../goobism-app
     restart: unless-stopped
