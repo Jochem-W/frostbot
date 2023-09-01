@@ -55,15 +55,11 @@ export const RankCommand = slashCommand({
 
     const params = new URLSearchParams({
       id: user.id,
-      username: user.username,
+      name: user.displayName,
       discriminator: user.discriminator,
       xp: levelData.xp.toString(10),
       position: levelData.position,
     })
-
-    if (user.globalName) {
-      params.set("global_name", user.globalName)
-    }
 
     if (user.avatar) {
       params.set("avatar", user.avatar)

@@ -24,6 +24,7 @@ export const PopulateLeaderboard = handler({
             name: user.displayName,
             avatar: user.avatar,
             member: true,
+            discriminator: user.discriminator,
           })
           .onConflictDoUpdate({
             target: usersTable.id,
@@ -31,6 +32,7 @@ export const PopulateLeaderboard = handler({
               name: user.displayName,
               avatar: user.avatar,
               member: true,
+              discriminator: user.discriminator,
             },
           })
       }

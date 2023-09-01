@@ -39,6 +39,7 @@ export const usersTable = pgTable("users", {
   xp: integer("xp").notNull(),
   name: text("name").notNull(),
   avatar: text("avatar"),
+  discriminator: text("discriminator").notNull(),
   member: boolean("member").notNull(),
 })
 

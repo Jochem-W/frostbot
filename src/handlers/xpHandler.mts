@@ -22,6 +22,7 @@ export const XpHandler = handler({
         name: message.author.displayName,
         avatar: message.author.avatar,
         member: true,
+        discriminator: message.author.discriminator,
       })
       .onConflictDoUpdate({
         target: usersTable.id,

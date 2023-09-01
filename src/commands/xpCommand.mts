@@ -41,6 +41,7 @@ export const XpCommand = slashCommand({
         name: user.displayName,
         avatar: user.avatar,
         member: !!(await tryFetchMember(interaction.guild, user)),
+        discriminator: user.discriminator,
       })
       .onConflictDoUpdate({ target: usersTable.id, set: { xp } })
       .returning()
