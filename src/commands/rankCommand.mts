@@ -63,7 +63,6 @@ export const RankCommand = slashCommand({
     }
 
     const page = await browser.newPage()
-    await page.setJavaScriptEnabled(false)
     await page.goto(`${Variables.cardUrl}/card?${params.toString()}`)
     const screenshot = await page.screenshot()
 
