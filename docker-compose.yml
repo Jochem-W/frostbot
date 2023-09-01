@@ -28,7 +28,7 @@ services:
     depends_on:
       - db
   chrome:
-    image: browserless-chrome
+    image: browserless/chrome
 
 networks:
   caddy_caddy:
