@@ -2,9 +2,9 @@ import { Drizzle } from "../clients.mjs"
 import { slashCommand, slashOption } from "../models/slashCommand.mjs"
 import { Variables } from "../models/variables.mjs"
 import { usersTable } from "../schema.mjs"
-import { selectUser } from "../util/db.mjs"
+import { userPosition } from "../util/db.mjs"
 import { AttachmentBuilder, SlashCommandUserOption } from "discord.js"
-import { sql } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 import puppeteer from "puppeteer"
 
 const browser = await puppeteer.launch({
@@ -31,8 +31,15 @@ export const RankCommand = slashCommand({
       user = interaction.user
     }
 
-    let dbResult = await selectUser(user.id)
-    if (!dbResult) {
+    let [levelData] = await Drizzle.select({
+      xp: usersTable.xp,
+      position: userPosition.position,
+    })
+      .from(usersTable)
+      .where(eq(usersTable.id, user.id))
+      .innerJoin(userPosition, eq(userPosition.id, user.id))
+
+    if (!levelData) {
       const [countResult] = await Drizzle.select({
         count: sql<string>`count(*)`,
       }).from(usersTable)
@@ -40,18 +47,18 @@ export const RankCommand = slashCommand({
         return
       }
 
-      dbResult = {
-        user: { xp: 0, id: user.id },
+      levelData = {
+        xp: 0,
         position: (parseInt(countResult.count) + 1).toString(10),
       }
     }
 
     const params = new URLSearchParams({
-      id: dbResult.user.id,
+      id: user.id,
       username: user.username,
       discriminator: user.discriminator,
-      xp: dbResult.user.xp.toString(10),
-      position: dbResult.position,
+      xp: levelData.xp.toString(10),
+      position: levelData.position,
     })
 
     if (user.globalName) {

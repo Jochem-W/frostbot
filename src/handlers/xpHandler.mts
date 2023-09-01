@@ -16,7 +16,13 @@ export const XpHandler = handler({
     }
 
     const [user] = await Drizzle.insert(usersTable)
-      .values({ id: message.author.id, xp: 1 })
+      .values({
+        id: message.author.id,
+        xp: 1,
+        name: message.author.displayName,
+        avatar: message.author.avatar,
+        member: true,
+      })
       .onConflictDoUpdate({
         target: usersTable.id,
         set: { xp: sql`${usersTable.xp} + 1` },

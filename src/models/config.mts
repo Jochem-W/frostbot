@@ -6,6 +6,7 @@ const model = z.object({
   levelRoles: z
     .record(z.string())
     .transform((arg) => new Map(Object.entries(arg))),
+  guild: z.string(),
 })
 
 export const Config = await model.parseAsync(

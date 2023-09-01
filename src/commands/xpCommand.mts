@@ -1,6 +1,7 @@
 import { Drizzle } from "../clients.mjs"
 import { slashCommand, slashOption } from "../models/slashCommand.mjs"
 import { usersTable } from "../schema.mjs"
+import { tryFetchMember } from "../util/discord.mjs"
 import {
   EmbedBuilder,
   PermissionFlagsBits,
@@ -8,7 +9,6 @@ import {
   SlashCommandUserOption,
   userMention,
 } from "discord.js"
-import { eq } from "drizzle-orm"
 
 export const XpCommand = slashCommand({
   name: "xp",
@@ -30,12 +30,23 @@ export const XpCommand = slashCommand({
     ),
   ],
   async handle(interaction, user, xp) {
-    const [result] = await Drizzle.update(usersTable)
-      .set({ xp })
-      .where(eq(usersTable.id, user.id))
+    if (!interaction.inCachedGuild()) {
+      return
+    }
+
+    const [result] = await Drizzle.insert(usersTable)
+      .values({
+        id: user.id,
+        xp,
+        name: user.displayName,
+        avatar: user.avatar,
+        member: !!(await tryFetchMember(interaction.guild, user)),
+      })
+      .onConflictDoUpdate({ target: usersTable.id, set: { xp } })
       .returning()
+
     if (!result) {
-      await Drizzle.insert(usersTable).values({ id: user.id, xp })
+      return
     }
 
     await interaction.reply({

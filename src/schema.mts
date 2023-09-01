@@ -36,7 +36,10 @@ export const actionsTable = pgTable("actions", {
 
 export const usersTable = pgTable("users", {
   id: text("id").primaryKey(),
-  xp: integer("xp").notNull().default(0),
+  xp: integer("xp").notNull(),
+  name: text("name").notNull(),
+  avatar: text("avatar"),
+  member: boolean("member").notNull(),
 })
 
 export const insertActionsSchema = createInsertSchema(actionsTable)
