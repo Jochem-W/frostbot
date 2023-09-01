@@ -1,4 +1,5 @@
 import { Drizzle } from "../clients.mjs"
+import { addExitListener } from "../handlers/readyHandler.mjs"
 import { slashCommand, slashOption } from "../models/slashCommand.mjs"
 import { Variables } from "../models/variables.mjs"
 import { usersTable } from "../schema.mjs"
@@ -12,6 +13,8 @@ const browser = await puppeteer.launch({
   defaultViewport: { width: 1024, height: 384 },
   args: ["--no-sandbox"],
 })
+
+addExitListener(async () => await browser.close())
 
 export const RankCommand = slashCommand({
   name: "rank",

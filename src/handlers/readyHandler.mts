@@ -13,6 +13,12 @@ import {
   ApplicationCommandType,
 } from "discord.js"
 
+const exitListeners: (() => Promise<void>)[] = []
+
+export function addExitListener(listener: () => Promise<void>) {
+  exitListeners.push(listener)
+}
+
 export const ReadyHandler = handler({
   event: "ready",
   once: true,
@@ -20,7 +26,11 @@ export const ReadyHandler = handler({
     console.log("Running as", client.user.tag)
 
     function exitListener() {
-      client.destroy().catch(console.error)
+      client
+        .destroy()
+        .then(async () => await Promise.allSettled(exitListeners))
+        .catch(console.error)
+        .finally(() => process.exit())
     }
 
     process.on("SIGINT", exitListener)
