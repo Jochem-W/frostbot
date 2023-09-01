@@ -15,10 +15,12 @@ export const XpHandler = handler({
       return
     }
 
+    const difference = 1
+
     const [user] = await Drizzle.insert(usersTable)
       .values({
         id: message.author.id,
-        xp: 1,
+        xp: difference,
         name: message.author.displayName,
         avatar: message.author.avatar,
         member: true,
@@ -26,7 +28,7 @@ export const XpHandler = handler({
       })
       .onConflictDoUpdate({
         target: usersTable.id,
-        set: { xp: sql`${usersTable.xp} + 1` },
+        set: { xp: sql`${usersTable.xp} + ${difference}` },
       })
       .returning()
     if (!user) {
@@ -34,7 +36,7 @@ export const XpHandler = handler({
     }
 
     const level = levelForTotalXp(user.xp)
-    if (totalXpForLevel(level) !== user.xp) {
+    if (user.xp - difference >= totalXpForLevel(level)) {
       return
     }
 
