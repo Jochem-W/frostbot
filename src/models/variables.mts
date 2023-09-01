@@ -8,7 +8,6 @@ const model = z
     DATABASE_URL: z.string(),
     NODE_ENV: z.string().optional().default("development"),
     CARD_URL: z.string().url(),
-    PUPPETEER_WS: z.string().optional(),
   })
   .transform((arg) => camelcaseKeys(arg))
 

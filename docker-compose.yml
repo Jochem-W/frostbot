@@ -27,8 +27,6 @@ services:
     restart: unless-stopped
     depends_on:
       - db
-  chrome:
-    image: browserless/chrome
 
 networks:
   caddy_caddy:

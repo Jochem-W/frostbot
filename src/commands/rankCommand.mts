@@ -7,20 +7,11 @@ import { AttachmentBuilder, SlashCommandUserOption } from "discord.js"
 import { sql } from "drizzle-orm"
 import puppeteer from "puppeteer"
 
-const defaultViewport = { width: 1024, height: 384 }
-
-let browser
-if (Variables.puppeteerWs) {
-  browser = await puppeteer.connect({
-    browserWSEndpoint: Variables.puppeteerWs,
-    defaultViewport,
-  })
-} else {
-  browser = await puppeteer.launch({ headless: "new", defaultViewport })
-}
-
-const page = await browser.newPage()
-await page.setJavaScriptEnabled(false)
+const browser = await puppeteer.launch({
+  headless: "new",
+  defaultViewport: { width: 1024, height: 384 },
+  args: ["--no-sandbox"],
+})
 
 export const RankCommand = slashCommand({
   name: "rank",
@@ -71,11 +62,15 @@ export const RankCommand = slashCommand({
       params.set("avatar", user.avatar)
     }
 
+    const page = await browser.newPage()
+    await page.setJavaScriptEnabled(false)
     await page.goto(`${Variables.cardUrl}/card?${params.toString()}`)
     const screenshot = await page.screenshot()
 
     await interaction.reply({
       files: [new AttachmentBuilder(screenshot, { name: "card.png" })],
     })
+
+    await page.close()
   },
 })
