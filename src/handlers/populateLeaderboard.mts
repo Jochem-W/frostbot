@@ -16,6 +16,10 @@ export const PopulateLeaderboard = handler({
       await transaction.update(usersTable).set({ member: false })
 
       for (const { user } of members.values()) {
+        if (user.bot) {
+          continue
+        }
+
         await transaction
           .insert(usersTable)
           .values({

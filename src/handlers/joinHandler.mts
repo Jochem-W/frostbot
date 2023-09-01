@@ -9,7 +9,12 @@ export const JoinHandler = handler({
   event: "guildMemberUpdate",
   once: false,
   async handle(oldMember, newMember) {
-    if (!oldMember.pending || newMember.pending) {
+    if (
+      !oldMember.pending ||
+      newMember.pending ||
+      oldMember.user.bot ||
+      newMember.user.bot
+    ) {
       return
     }
 

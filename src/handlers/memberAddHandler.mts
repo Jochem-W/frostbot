@@ -6,6 +6,10 @@ export const MemberAddHandler = handler({
   event: "guildMemberAdd",
   once: false,
   async handle({ user }) {
+    if (user.bot) {
+      return
+    }
+
     await Drizzle.insert(usersTable)
       .values({
         id: user.id,

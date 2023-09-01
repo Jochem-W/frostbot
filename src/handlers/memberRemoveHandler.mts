@@ -7,6 +7,10 @@ export const MemberRemoveHandler = handler({
   event: "guildMemberRemove",
   once: false,
   async handle({ user }) {
+    if (user.bot) {
+      return
+    }
+
     await Drizzle.update(usersTable)
       .set({
         name: user.displayName,

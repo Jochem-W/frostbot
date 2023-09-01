@@ -5,7 +5,11 @@ import { usersTable } from "../schema.mjs"
 export const UserUpdateHandler = handler({
   event: "userUpdate",
   once: false,
-  async handle(_old, user) {
+  async handle(oldUser, user) {
+    if (oldUser.bot || user.bot) {
+      return
+    }
+
     await Drizzle.insert(usersTable)
       .values({
         id: user.id,

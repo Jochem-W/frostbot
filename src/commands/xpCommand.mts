@@ -30,7 +30,7 @@ export const XpCommand = slashCommand({
     ),
   ],
   async handle(interaction, user, xp) {
-    if (!interaction.inCachedGuild()) {
+    if (!interaction.inCachedGuild() || user.bot) {
       return
     }
 
