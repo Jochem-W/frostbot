@@ -1,7 +1,7 @@
 import { Drizzle } from "../clients.mjs"
 import { addExitListener } from "../handlers/readyHandler.mjs"
+import { Config } from "../models/config.mjs"
 import { slashCommand, slashOption } from "../models/slashCommand.mjs"
-import { Variables } from "../models/variables.mjs"
 import { usersTable } from "../schema.mjs"
 import { userPosition } from "../util/db.mjs"
 import { AttachmentBuilder, SlashCommandUserOption } from "discord.js"
@@ -69,7 +69,7 @@ export const RankCommand = slashCommand({
     }
 
     const page = await browser.newPage()
-    await page.goto(`${Variables.cardUrl}/card?${params.toString()}`)
+    await page.goto(`${Config.baseUrl}/card?${params.toString()}`)
     const screenshot = await page.screenshot()
 
     await interaction.reply({

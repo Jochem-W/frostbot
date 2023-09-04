@@ -7,7 +7,6 @@ const model = z
     BOT_TOKEN: z.string(),
     DATABASE_URL: z.string(),
     NODE_ENV: z.string().optional().default("development"),
-    CARD_URL: z.string().url(),
   })
   .transform((arg) => camelcaseKeys(arg))
 

@@ -14,6 +14,7 @@ const model = z.object({
     dropoff: z.number(),
     time: z.number(),
   }),
+  baseUrl: z.string().url(),
 })
 
 export const Config = await model.parseAsync(
