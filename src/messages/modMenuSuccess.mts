@@ -7,43 +7,42 @@ import { Colours } from "../models/colours.mjs"
 import { type ModMenuState } from "./modMenu.mjs"
 import { EmbedBuilder } from "discord.js"
 
-function formatAction({ action, guild, targetUser }: ModMenuState) {
+function formatAction({ action, targetUser }: ModMenuState) {
   let value
   let prepend = true
   switch (action) {
     case "unban":
-      value = "unbanned from "
+      value = "unbanned"
       break
     case "kick":
-      value = "kicked from "
+      value = "kicked"
       break
     case "warn":
-      value = "warned in "
+      value = "warned"
       break
     case "timeout":
-      value = "timed out in "
+      value = "timed out"
       break
     case "ban":
-      value = "banned from "
+      value = "banned"
       break
     case "note":
-      value = `A note has been created for ${targetUser.toString()} in`
+      value = `A note has been created for ${targetUser.toString()}.`
       prepend = false
       break
     case "restrain":
-      value = "restrained in "
+      value = "restrained"
       break
     case "untimeout":
-      value = `${targetUser.toString()}'s timeout has been removed in `
+      value = `${targetUser.toString()}'s timeout has been removed.`
       prepend = false
       break
   }
 
   if (prepend) {
-    value = `${targetUser.toString()} has been ` + value
+    value = `${targetUser.toString()} has been ${value}.`
   }
 
-  value += `${guild.name}.`
   return value
 }
 

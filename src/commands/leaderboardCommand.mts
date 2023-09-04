@@ -17,7 +17,7 @@ export const LeaderboardCommand = slashCommand({
     await interaction.reply({
       embeds: [
         new EmbedBuilder()
-          .setTitle(`${guild.name} leaderboard`)
+          .setTitle("Leaderboard")
           .setDescription(
             `The online leaderboard can be viewed ${hyperlink(
               "here",

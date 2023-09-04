@@ -2,22 +2,22 @@ import { Colours } from "../models/colours.mjs"
 import { type ModMenuState } from "./modMenu.mjs"
 import { EmbedBuilder } from "discord.js"
 
-function formatTitle({ action, guild }: ModMenuState) {
+function formatTitle({ action }: ModMenuState) {
   switch (action) {
     case "kick":
-      return `You have been kicked from ${guild.name}.`
+      return `You have been kicked`
     case "warn":
-      return `You have been warned in ${guild.name}.`
+      return `You have been warned`
     case "timeout":
-      return `You have been timed out in ${guild.name}.`
+      return `You have been timed out`
     case "ban":
-      return `You have been banned from ${guild.name}.`
+      return `You have been banned`
     case "unban":
     case "note":
     case "restrain":
       throw new Error() // TODO
     case "untimeout":
-      return `Your timeout has been removed in ${guild.name}.`
+      return `Your timeout has been removed`
   }
 }
 
