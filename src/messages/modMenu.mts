@@ -147,7 +147,7 @@ export async function modMenu(state: ModMenuState) {
   } else {
     const lines = history.map((entry) => entrySummary(state, entry))
     const otherCount = count - 5n
-    if (otherCount !== 0n) {
+    if (otherCount > 0n) {
       lines.push(
         `- And ${bold(otherCount.toString(10))} other log${
           otherCount === 1n ? "" : "s"
