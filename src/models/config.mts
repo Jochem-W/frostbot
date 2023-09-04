@@ -7,6 +7,13 @@ const model = z.object({
     .record(z.string())
     .transform((arg) => new Map(Object.entries(arg))),
   guild: z.string(),
+  xp: z.object({
+    max: z.number(),
+    min: z.number(),
+    curve: z.number(),
+    dropoff: z.number(),
+    time: z.number(),
+  }),
 })
 
 export const Config = await model.parseAsync(

@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@isaacs/ttlcache": "^1.4.1",
     "@types/luxon": "^3.3.2",
     "camelcase-keys": "^9.0.0",
     "discord.js": "^14.13.0",

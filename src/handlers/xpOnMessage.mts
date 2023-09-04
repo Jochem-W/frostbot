@@ -4,8 +4,14 @@ import { Config } from "../models/config.mjs"
 import { handler } from "../models/handler.mjs"
 import { usersTable } from "../schema.mjs"
 import { levelForTotalXp, totalXpForLevel } from "../util/xp.mjs"
+import TTLCache from "@isaacs/ttlcache"
 import { EmbedBuilder, MessageFlags, roleMention } from "discord.js"
 import { sql } from "drizzle-orm"
+import { Duration } from "luxon"
+
+const times = new TTLCache<string, boolean>({
+  ttl: Duration.fromObject({ seconds: Config.xp.time }).toMillis(),
+})
 
 export const XpOnMessage = handler({
   event: "messageCreate",
@@ -15,7 +21,26 @@ export const XpOnMessage = handler({
       return
     }
 
-    const difference = 1
+    if (times.get(message.author.id)) {
+      return
+    }
+
+    times.set(message.author.id, true)
+
+    const difference = Math.max(
+      Math.floor(
+        Math.min(
+          (1 + Config.xp.curve) ** message.content.length,
+          Config.xp.max,
+          Config.xp.max *
+            (1 - Config.xp.curve) **
+              (message.content.length - Config.xp.dropoff),
+        ),
+      ),
+      Config.xp.min,
+    )
+
+    console.log(difference)
 
     const [user] = await Drizzle.insert(usersTable)
       .values({
