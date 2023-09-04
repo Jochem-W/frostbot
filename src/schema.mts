@@ -32,6 +32,7 @@ export const actionsTable = pgTable("actions", {
   timestamp: timestamp("timestamp").notNull(),
   dmSuccess: boolean("dmSuccess").notNull(),
   actionSucess: boolean("actionSuccess").notNull(),
+  deleteMessageSeconds: integer("deleteMessageSecconds").notNull(),
 })
 
 export const usersTable = pgTable("users", {

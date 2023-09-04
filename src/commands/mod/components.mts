@@ -206,6 +206,7 @@ async function tryInsert({
     staffMember,
     timeout,
     timestamp,
+    deleteMessageSeconds,
   },
   dmStatus,
   actionStatus,
@@ -229,6 +230,7 @@ async function tryInsert({
           timestamp,
           dmSuccess: dmStatus.success,
           actionSucess: actionStatus.success,
+          deleteMessageSeconds,
         },
       ])
       .returning({ id: actionsTable.id })
