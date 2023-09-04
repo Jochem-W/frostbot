@@ -9,11 +9,7 @@ import {
 } from "../commands/mod/components.mjs"
 import { timeoutOptions } from "../commands/mod/shared.mjs"
 import { Colours } from "../models/colours.mjs"
-import {
-  actionsTable,
-  selectActionsSchema,
-  type insertActionsSchema,
-} from "../schema.mjs"
+import { actionsTable, insertActionsSchema } from "../schema.mjs"
 import { tryFetchMember } from "../util/discord.mjs"
 import {
   EmbedBuilder,
@@ -41,12 +37,8 @@ import {
 } from "discord.js"
 import { desc, eq, sql } from "drizzle-orm"
 import type { Duration } from "luxon"
-import type { z } from "zod"
 
-type Permissions = Record<
-  z.infer<typeof insertActionsSchema>["action"],
-  boolean
->
+type Permissions = Record<(typeof actionsTable.$inferSelect)["action"], boolean>
 
 export function formatDuration(duration: Duration) {
   let amount
@@ -162,7 +154,7 @@ export type ModMenuState = {
   guild: Guild
   targetUser: User
   targetMember?: GuildMember
-  action: z.infer<typeof insertActionsSchema>["action"]
+  action: (typeof actionsTable.$inferInsert)["action"]
   body?: string
   dm: boolean
   staffMember: GuildMember
@@ -217,7 +209,7 @@ export async function modMenuState({
     ?.options.find((option) => option.default)?.value
 
   if (option) {
-    state.action = option as z.infer<typeof insertActionsSchema>["action"]
+    state.action = await insertActionsSchema.shape.action.parseAsync(option)
   }
 
   const reason = message.embeds[2]?.fields[0]?.value
@@ -404,7 +396,7 @@ function summary(guild: Guild, user: User, member?: GuildMember | null) {
 }
 
 function formatActionForSummary(
-  action: z.infer<typeof selectActionsSchema>["action"],
+  action: (typeof actionsTable.$inferSelect)["action"],
 ) {
   switch (action) {
     case "unban":
@@ -430,7 +422,7 @@ const bodyLength = 75
 
 function entrySummary(
   { staffMember }: ModMenuState,
-  { action, timestamp, body }: z.infer<typeof selectActionsSchema>,
+  { action, timestamp, body }: typeof actionsTable.$inferSelect,
 ) {
   let line = `- ${bold(formatActionForSummary(action))} ${time(
     timestamp,

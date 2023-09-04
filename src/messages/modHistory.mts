@@ -1,6 +1,6 @@
 import { Drizzle } from "../clients.mjs"
 import { Colours } from "../models/colours.mjs"
-import { actionsTable, type selectActionsSchema } from "../schema.mjs"
+import { actionsTable } from "../schema.mjs"
 import { tryFetchMember } from "../util/discord.mjs"
 import { formatDuration, getColour } from "./modMenu.mjs"
 import {
@@ -14,11 +14,10 @@ import {
 } from "discord.js"
 import { eq, asc } from "drizzle-orm"
 import { Duration } from "luxon"
-import type { z } from "zod"
 
 async function formatAction(
   client: Client<true>,
-  { action, staffId, timeout }: z.infer<typeof selectActionsSchema>,
+  { action, staffId, timeout }: typeof actionsTable.$inferSelect,
 ) {
   const staff = await client.users.fetch(staffId)
 

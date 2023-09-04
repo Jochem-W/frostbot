@@ -7,7 +7,7 @@ import {
   text,
   timestamp,
 } from "drizzle-orm/pg-core"
-import { createInsertSchema, createSelectSchema } from "drizzle-zod"
+import { createInsertSchema } from "drizzle-zod"
 
 export const actionsEnum = pgEnum("actionsEnum", [
   "unban",
@@ -44,4 +44,3 @@ export const usersTable = pgTable("users", {
 })
 
 export const insertActionsSchema = createInsertSchema(actionsTable)
-export const selectActionsSchema = createSelectSchema(actionsTable)

@@ -23,7 +23,6 @@ import {
   RESTJSONErrorCodes,
 } from "discord.js"
 import { Duration } from "luxon"
-import type { z } from "zod"
 
 const restrainDuration = Duration.fromObject({
   days: 28,
@@ -380,7 +379,7 @@ export const actionDropdown = staticComponent({
     }
 
     const state = await modMenuState(interaction)
-    state.action = value as z.infer<typeof insertActionsSchema>["action"]
+    state.action = await insertActionsSchema.shape.action.parseAsync(value)
 
     switch (value) {
       case "note":
