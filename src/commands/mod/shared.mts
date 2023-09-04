@@ -21,31 +21,31 @@ export const messageDeleteOptions: SelectMenuComponentOptionData[] = [
   {
     label: "Delete the previous hour of messages",
     emoji: "🕐",
-    value: Duration.fromObject({ hours: 1 }).toMillis().toString(10),
+    value: Duration.fromObject({ hours: 1 }).as("seconds").toString(10),
   },
   {
     label: "Delete the previous 6 hours of messages",
     emoji: "🕕",
-    value: Duration.fromObject({ hours: 6 }).toMillis().toString(10),
+    value: Duration.fromObject({ hours: 6 }).as("seconds").toString(10),
   },
   {
     label: "Delete the previous 12 hours of messages",
     emoji: "🕛",
-    value: Duration.fromObject({ hours: 12 }).toMillis().toString(10),
+    value: Duration.fromObject({ hours: 12 }).as("seconds").toString(10),
   },
   {
     label: "Delete the previous 24 hours of messages",
     emoji: "🕛",
-    value: Duration.fromObject({ hours: 24 }).toMillis().toString(10),
+    value: Duration.fromObject({ hours: 24 }).as("seconds").toString(10),
   },
   {
     label: "Delete the previous 3 days of messages",
     emoji: "📅",
-    value: Duration.fromObject({ days: 3 }).toMillis().toString(10),
+    value: Duration.fromObject({ days: 3 }).as("seconds").toString(10),
   },
   {
     label: "Delete the previous 7 days of messages",
     emoji: "📅",
-    value: Duration.fromObject({ days: 7 }).toMillis().toString(10),
+    value: Duration.fromObject({ days: 7 }).as("seconds").toString(10),
   },
 ]
