@@ -52,6 +52,16 @@ function formatActionFail({ action, targetUser }: ModMenuState) {
   }
 }
 
+function shiftDuration(duration: Duration) {
+  return Duration.fromObject(
+    Object.fromEntries(
+      Object.entries(duration.shiftToAll().toObject()).filter(
+        ([, value]) => value !== 0,
+      ),
+    ),
+  )
+}
+
 export function modMenuLog({
   dmStatus,
   actionStatus,
@@ -63,8 +73,16 @@ export function modMenuLog({
   insertStatus: InsertStatus
   state: ModMenuState
 }) {
-  const { staffMember, targetUser, targetMember, body, action, timestamp } =
-    state
+  const {
+    staffMember,
+    targetUser,
+    targetMember,
+    body,
+    action,
+    timestamp,
+    timeout,
+    deleteMessageSeconds,
+  } = state
 
   const embed = new EmbedBuilder()
     .setAuthor({
@@ -86,9 +104,21 @@ export function modMenuLog({
     })
   }
 
+  if (action === "ban" && deleteMessageSeconds) {
+    const duration = Duration.fromObject({ seconds: deleteMessageSeconds })
+    const since = DateTime.fromJSDate(timestamp).minus(duration).toJSDate()
+    embed.addFields({
+      name: "🗑️ Messages deleted",
+      value: `Last ${shiftDuration(duration).toHuman()} (since ${time(
+        since,
+        TimestampStyles.ShortTime,
+      )} ${time(since, TimestampStyles.ShortDate)})`,
+    })
+  }
+
   if (
     action === "timeout" &&
-    state.timeout &&
+    timeout &&
     targetMember?.communicationDisabledUntil
   ) {
     embed.addFields({
@@ -96,13 +126,7 @@ export function modMenuLog({
       value: `${time(
         targetMember.communicationDisabledUntil,
         TimestampStyles.RelativeTime,
-      )} (${Duration.fromObject(
-        Object.fromEntries(
-          Object.entries(
-            Duration.fromMillis(state.timeout).shiftToAll().toObject(),
-          ).filter(([, value]) => value !== 0),
-        ),
-      ).toHuman()})`,
+      )} (${shiftDuration(Duration.fromMillis(timeout)).toHuman()})`,
     })
   }
 
