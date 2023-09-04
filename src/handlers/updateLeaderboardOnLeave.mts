@@ -3,7 +3,7 @@ import { handler } from "../models/handler.mjs"
 import { usersTable } from "../schema.mjs"
 import { eq } from "drizzle-orm"
 
-export const MemberRemoveHandler = handler({
+export const UpdateLeaderboardOnLeave = handler({
   event: "guildMemberRemove",
   once: false,
   async handle({ user }) {

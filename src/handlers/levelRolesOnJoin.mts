@@ -5,7 +5,7 @@ import { usersTable } from "../schema.mjs"
 import { levelForTotalXp } from "../util/xp.mjs"
 import { eq } from "drizzle-orm"
 
-export const JoinHandler = handler({
+export const LevelRolesOnJoin = handler({
   event: "guildMemberUpdate",
   once: false,
   async handle(oldMember, newMember) {

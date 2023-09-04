@@ -7,7 +7,7 @@ import { levelForTotalXp, totalXpForLevel } from "../util/xp.mjs"
 import { EmbedBuilder, MessageFlags, roleMention } from "discord.js"
 import { sql } from "drizzle-orm"
 
-export const XpHandler = handler({
+export const XpOnMessage = handler({
   event: "messageCreate",
   once: false,
   async handle(message) {

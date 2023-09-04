@@ -2,11 +2,11 @@ import { Drizzle } from "../clients.mjs"
 import { handler } from "../models/handler.mjs"
 import { usersTable } from "../schema.mjs"
 
-export const MemberAddHandler = handler({
-  event: "guildMemberAdd",
+export const UpdateLeaderboardOnUser = handler({
+  event: "userUpdate",
   once: false,
-  async handle({ user }) {
-    if (user.bot) {
+  async handle(oldUser, user) {
+    if (oldUser.bot || user.bot) {
       return
     }
 

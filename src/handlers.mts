@@ -1,21 +1,21 @@
 import { InteractionHandler } from "./handlers/interactionHandler.mjs"
-import { JoinHandler } from "./handlers/joinHandler.mjs"
-import { MemberAddHandler } from "./handlers/memberAddHandler.mjs"
-import { MemberRemoveHandler } from "./handlers/memberRemoveHandler.mjs"
-import { PopulateLeaderboard } from "./handlers/populateLeaderboard.mjs"
+import { LevelRolesOnJoin } from "./handlers/levelRolesOnJoin.mjs"
 import { ReadyHandler } from "./handlers/readyHandler.mjs"
-import { UserUpdateHandler } from "./handlers/userUpdateHandler.mjs"
-import { XpHandler } from "./handlers/xpHandler.mjs"
+import { UpdateLeaderboardOnJoin } from "./handlers/updateLeaderboardOnJoin.mjs"
+import { UpdateLeaderboardOnLeave } from "./handlers/updateLeaderboardOnLeave.mjs"
+import { UpdateLeaderboardOnStart } from "./handlers/updateLeaderboardOnStart.mjs"
+import { UpdateLeaderboardOnUser } from "./handlers/updateLeaderboardOnUser.mjs"
+import { XpOnMessage } from "./handlers/xpOnMessage.mjs"
 import type { Handler } from "./models/handler.mjs"
 import type { ClientEvents } from "discord.js"
 
 export const Handlers: Handler<keyof ClientEvents>[] = [
   ReadyHandler,
   InteractionHandler,
-  XpHandler,
-  JoinHandler,
-  PopulateLeaderboard,
-  MemberAddHandler,
-  MemberRemoveHandler,
-  UserUpdateHandler,
+  XpOnMessage,
+  LevelRolesOnJoin,
+  UpdateLeaderboardOnStart,
+  UpdateLeaderboardOnJoin,
+  UpdateLeaderboardOnLeave,
+  UpdateLeaderboardOnUser,
 ]

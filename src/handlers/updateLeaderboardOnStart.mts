@@ -3,7 +3,7 @@ import { Config } from "../models/config.mjs"
 import { handler } from "../models/handler.mjs"
 import { usersTable } from "../schema.mjs"
 
-export const PopulateLeaderboard = handler({
+export const UpdateLeaderboardOnStart = handler({
   event: "ready",
   once: true,
   async handle(client) {
