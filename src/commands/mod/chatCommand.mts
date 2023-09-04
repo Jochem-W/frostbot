@@ -44,6 +44,7 @@ export const ModCommand = slashCommand({
           action: "restrain",
           permissions: await getPermissions(guild, targetUser),
           timestamp: interaction.createdAt,
+          deleteMessageSeconds: 0,
         }
 
         const targetMember = await tryFetchMember(guild, targetUser)

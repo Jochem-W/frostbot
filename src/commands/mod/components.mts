@@ -1,5 +1,4 @@
 import { Drizzle } from "../../clients.mjs"
-import { modHistory } from "../../messages/modHistory.mjs"
 import {
   getPermissions,
   modMenu,
@@ -29,27 +28,6 @@ const restrainDuration = Duration.fromObject({
   minutes: -1,
 }).toMillis()
 
-export const openModHistory = staticComponent({
-  type: ComponentType.Button,
-  name: "mod-history",
-  async handle(interaction) {
-    if (!interaction.inCachedGuild()) {
-      return
-    }
-
-    const { targetUser, guild } = await modMenuState(interaction)
-    const [firstReply, ...replies] = await modHistory(targetUser, guild)
-    if (!firstReply) {
-      return
-    }
-
-    await interaction.reply(firstReply)
-    for (const reply of replies) {
-      await interaction.followUp(reply)
-    }
-  },
-})
-
 export const openModMenu = staticComponent({
   type: ComponentType.Button,
   name: "mod-menu",
@@ -76,6 +54,7 @@ export const openModMenu = staticComponent({
       targetUser,
       permissions: await getPermissions(guild, targetUser),
       staffMember: member,
+      deleteMessageSeconds: 0,
     }
 
     const targetMember = await tryFetchMember(guild, targetUser)
@@ -161,6 +140,7 @@ async function tryAction({
   targetMember,
   action,
   timeout,
+  deleteMessageSeconds,
 }: ModMenuState): Promise<ActionStatus> {
   try {
     switch (action) {
@@ -185,7 +165,7 @@ async function tryAction({
         await targetMember.timeout(timeout)
         break
       case "ban":
-        await guild.bans.create(targetUser)
+        await guild.bans.create(targetUser, { deleteMessageSeconds })
         break
       case "note":
         break
@@ -337,6 +317,31 @@ export const confirmAction = staticComponent({
     )
 
     await logs.send(modMenuLog({ state, dmStatus, actionStatus, insertStatus }))
+  },
+})
+
+export const messageDeleteDropdown = staticComponent({
+  type: ComponentType.StringSelect,
+  name: "mod-delete",
+  async handle(interaction) {
+    if (!interaction.inCachedGuild()) {
+      return
+    }
+
+    const value = interaction.values[0]
+    if (!value) {
+      return
+    }
+
+    const duration = parseInt(value, 10)
+    if (isNaN(duration)) {
+      return
+    }
+
+    const state = await modMenuState(interaction)
+    state.deleteMessageSeconds = duration
+
+    await interaction.update(await modMenu(state))
   },
 })
 

@@ -27,6 +27,7 @@ export const ModUserContextCommand = contextMenuCommand({
       action: "restrain",
       permissions: await getPermissions(guild, targetUser),
       timestamp: interaction.createdAt,
+      deleteMessageSeconds: 0,
     }
 
     const member = await tryFetchMember(guild, targetUser)
