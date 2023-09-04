@@ -1,3 +1,4 @@
+import { LeaderboardCommand } from "./commands/leaderboardCommand.mjs"
 import { ModCommand } from "./commands/mod/chatCommand.mjs"
 import { ModUserContextCommand } from "./commands/mod/userContextCommand.mjs"
 import { RankCommand } from "./commands/rankCommand.mjs"
@@ -10,6 +11,7 @@ export const SlashCommands: Command<ApplicationCommandType.ChatInput>[] = [
   ModCommand,
   RankCommand,
   XpCommand,
+  LeaderboardCommand,
 ]
 export const MessageContextMenuCommands: Command<ApplicationCommandType.Message>[] =
   [RestoreLevelCommand]
