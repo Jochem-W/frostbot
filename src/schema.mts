@@ -33,6 +33,7 @@ export const actionsTable = pgTable("actions", {
   dmSuccess: boolean("dmSuccess").notNull(),
   actionSucess: boolean("actionSuccess").notNull(),
   deleteMessageSeconds: integer("deleteMessageSecconds"),
+  timedOutUntil: timestamp("timedOutUntil"),
 })
 
 export const usersTable = pgTable("users", {

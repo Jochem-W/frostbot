@@ -5,6 +5,7 @@ import {
   type InsertStatus,
 } from "../commands/mod/components.mjs"
 import { actionsTable } from "../schema.mjs"
+import { tryFetchMember } from "../util/discord.mjs"
 import { formatDuration, getColour, type ModMenuState } from "./modMenu.mjs"
 import {
   ActionRowBuilder,
@@ -77,6 +78,7 @@ export async function modMenuLogFromDb(
 ) {
   const guild = await client.guilds.fetch(data.guildId)
   const targetUser = await client.users.fetch(data.userId)
+  const targetMember = await tryFetchMember(guild, targetUser)
   const staffMember = await guild.members.fetch(data.staffId)
 
   const options: Parameters<typeof modMenuLog>[0] = {
@@ -97,6 +99,22 @@ export async function modMenuLogFromDb(
 
   if (data.deleteMessageSeconds !== null) {
     options.state.deleteMessageSeconds = data.deleteMessageSeconds
+  }
+
+  if (data.body) {
+    options.state.body = data.body
+  }
+
+  if (data.timeout) {
+    options.state.timeout = data.timeout
+  }
+
+  if (targetMember) {
+    options.state.targetMember = targetMember
+  }
+
+  if (data.timedOutUntil) {
+    options.state.timedOutUntil = data.timedOutUntil
   }
 
   return modMenuLog(options)
@@ -122,7 +140,7 @@ export function modMenuLog({
     timestamp,
     timeout,
     deleteMessageSeconds,
-    timedOutUntil, // TODO this isn't in the DB
+    timedOutUntil,
   } = state
 
   const embed = new EmbedBuilder()

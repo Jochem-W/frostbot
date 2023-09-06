@@ -323,7 +323,7 @@ export async function modMenuState({
   | ModalMessageModalSubmitInteraction<"cached">) {
   const userId = message.embeds[0]?.footer?.text
   if (!userId) {
-    throw new Error()
+    throw new Error() // TODO
   }
 
   const targetUser = await message.client.users.fetch(userId)
