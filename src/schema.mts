@@ -32,7 +32,7 @@ export const actionsTable = pgTable("actions", {
   timestamp: timestamp("timestamp").notNull(),
   dmSuccess: boolean("dmSuccess").notNull(),
   actionSucess: boolean("actionSuccess").notNull(),
-  deleteMessageSeconds: integer("deleteMessageSecconds").notNull(),
+  deleteMessageSeconds: integer("deleteMessageSecconds"),
 })
 
 export const usersTable = pgTable("users", {
@@ -42,6 +42,24 @@ export const usersTable = pgTable("users", {
   avatar: text("avatar"),
   discriminator: text("discriminator").notNull(),
   member: boolean("member").notNull(),
+})
+
+export const attachmentsTable = pgTable("attachments", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull(),
+  actionId: integer("actionId")
+    .notNull()
+    .references(() => actionsTable.id),
+})
+
+export const actionLogsTable = pgTable("actionLogs", {
+  id: serial("id").primaryKey(),
+  actionId: integer("actionId")
+    .notNull()
+    .references(() => actionsTable.id)
+    .unique(),
+  messageId: text("messageId").notNull().unique(),
+  channelId: text("channelId").notNull(),
 })
 
 export const insertActionsSchema = createInsertSchema(actionsTable)

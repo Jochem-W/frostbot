@@ -15,6 +15,12 @@ const model = z.object({
     time: z.number(),
   }),
   baseUrl: z.string().url(),
+  s3: z.object({
+    bucket: z.string(),
+    bucketUrl: z.string().url(),
+    region: z.string(),
+    endpoint: z.string(),
+  }),
 })
 
 export const Config = await model.parseAsync(

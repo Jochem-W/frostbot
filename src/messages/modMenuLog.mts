@@ -4,6 +4,7 @@ import {
   type ActionStatus,
   type InsertStatus,
 } from "../commands/mod/components.mjs"
+import { actionsTable } from "../schema.mjs"
 import { formatDuration, getColour, type ModMenuState } from "./modMenu.mjs"
 import {
   ActionRowBuilder,
@@ -13,10 +14,15 @@ import {
   TimestampStyles,
   time,
   type MessageActionRowComponentBuilder,
+  Client,
 } from "discord.js"
 import { DateTime, Duration } from "luxon"
 
-function formatTitle({ action, staffMember, targetUser }: ModMenuState) {
+function formatTitle({
+  action,
+  staffMember,
+  targetUser,
+}: Pick<ModMenuState, "action" | "staffMember" | "targetUser">) {
   switch (action) {
     case "warn":
       return `${staffMember.user.displayName} issued a warning on ${targetUser.displayName}`
@@ -35,7 +41,10 @@ function formatTitle({ action, staffMember, targetUser }: ModMenuState) {
   }
 }
 
-function formatActionFail({ action, targetUser }: ModMenuState) {
+function formatActionFail({
+  action,
+  targetUser,
+}: Pick<ModMenuState, "action" | "targetUser">) {
   switch (action) {
     case "unban":
     case "kick":
@@ -62,6 +71,37 @@ function shiftDuration(duration: Duration) {
   )
 }
 
+export async function modMenuLogFromDb(
+  client: Client<true>,
+  data: typeof actionsTable.$inferSelect,
+) {
+  const guild = await client.guilds.fetch(data.guildId)
+  const targetUser = await client.users.fetch(data.userId)
+  const staffMember = await guild.members.fetch(data.staffId)
+
+  const options: Parameters<typeof modMenuLog>[0] = {
+    dmStatus: data.dmSuccess
+      ? { success: true }
+      : { success: false, error: "unknown" },
+    actionStatus: data.actionSucess
+      ? { success: true }
+      : { success: false, error: "unknown" },
+    insertStatus: { success: true, id: data.id },
+    state: {
+      targetUser,
+      action: data.action,
+      staffMember,
+      timestamp: data.timestamp,
+    },
+  }
+
+  if (data.deleteMessageSeconds !== null) {
+    options.state.deleteMessageSeconds = data.deleteMessageSeconds
+  }
+
+  return modMenuLog(options)
+}
+
 export function modMenuLog({
   dmStatus,
   actionStatus,
@@ -71,7 +111,7 @@ export function modMenuLog({
   dmStatus: DmStatus
   actionStatus: ActionStatus
   insertStatus: InsertStatus
-  state: ModMenuState
+  state: Omit<ModMenuState, "permissions" | "guild" | "dm">
 }) {
   const {
     staffMember,
@@ -82,6 +122,7 @@ export function modMenuLog({
     timestamp,
     timeout,
     deleteMessageSeconds,
+    timedOutUntil, // TODO this isn't in the DB
   } = state
 
   const embed = new EmbedBuilder()
@@ -130,11 +171,11 @@ export function modMenuLog({
     })
   }
 
-  if (action === "untimeout" && state.timedOutUntil) {
+  if (action === "untimeout" && timedOutUntil) {
     embed.addFields({
       name: "🕑 Timeout amount skipped",
       value: formatDuration(
-        DateTime.fromJSDate(state.timedOutUntil).diffNow().shiftToAll(),
+        DateTime.fromJSDate(timedOutUntil).diffNow().shiftToAll(),
       ),
     })
   }

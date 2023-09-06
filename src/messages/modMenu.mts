@@ -311,7 +311,7 @@ export type ModMenuState = {
   permissions: Permissions
   timestamp: Date
   timedOutUntil?: Date
-  deleteMessageSeconds: number
+  deleteMessageSeconds?: number
 }
 
 export async function modMenuState({

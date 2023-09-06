@@ -10,7 +10,11 @@ import { modMenuLog } from "../../messages/modMenuLog.mjs"
 import { modMenuSuccess } from "../../messages/modMenuSuccess.mjs"
 import { staticComponent } from "../../models/component.mjs"
 import { Config } from "../../models/config.mjs"
-import { actionsTable, insertActionsSchema } from "../../schema.mjs"
+import {
+  actionLogsTable,
+  actionsTable,
+  insertActionsSchema,
+} from "../../schema.mjs"
 import { fetchChannel, tryFetchMember } from "../../util/discord.mjs"
 import { logError } from "../../util/error.mjs"
 import { setReasonModal, setBodyModal } from "./modals.mjs"
@@ -165,7 +169,9 @@ async function tryAction({
         await targetMember.timeout(timeout)
         break
       case "ban":
-        await guild.bans.create(targetUser, { deleteMessageSeconds })
+        await guild.bans.create(targetUser, {
+          deleteMessageSeconds: deleteMessageSeconds ?? 0,
+        })
         break
       case "note":
         break
@@ -230,7 +236,7 @@ async function tryInsert({
           timestamp,
           dmSuccess: dmStatus.success,
           actionSucess: actionStatus.success,
-          deleteMessageSeconds,
+          deleteMessageSeconds: deleteMessageSeconds ?? null,
         },
       ])
       .returning({ id: actionsTable.id })
@@ -318,7 +324,16 @@ export const confirmAction = staticComponent({
       ChannelType.GuildText,
     )
 
-    await logs.send(modMenuLog({ state, dmStatus, actionStatus, insertStatus }))
+    const message = await logs.send(
+      modMenuLog({ state, dmStatus, actionStatus, insertStatus }),
+    )
+    if (insertStatus.success) {
+      await Drizzle.insert(actionLogsTable).values({
+        messageId: message.id,
+        channelId: message.channelId,
+        actionId: insertStatus.id,
+      })
+    }
   },
 })
 
