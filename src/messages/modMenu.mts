@@ -324,7 +324,7 @@ function actionControls(state: ModMenuState, permissions: ModMenuPermissions) {
 
   if (errors.length > 0) {
     errors.unshift("To perform this action:")
-    embed.addFields({ name: "⚠️ Notice", value: errors.join("\n") })
+    embed.setDescription(errors.join("\n"))
   }
 
   const actionData = formatActionAsQuestion(state)
