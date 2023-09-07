@@ -1,8 +1,11 @@
 import { Drizzle } from "../clients.mjs"
+import {
+  getColour,
+  formatDurationAsSingleUnit,
+} from "../commands/mod/shared.mjs"
 import { Colours } from "../models/colours.mjs"
 import { actionsTable } from "../schema.mjs"
 import { tryFetchMember } from "../util/discord.mjs"
-import { formatDurationAsSingleUnit, getColour } from "./modMenu.mjs"
 import {
   bold,
   Client,

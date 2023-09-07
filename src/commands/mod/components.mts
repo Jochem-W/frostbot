@@ -1,10 +1,5 @@
 import { Drizzle } from "../../clients.mjs"
-import {
-  getPermissions,
-  modMenu,
-  modMenuState,
-  type ModMenuState,
-} from "../../messages/modMenu.mjs"
+import { modMenu, type ModMenuState } from "../../messages/modMenu.mjs"
 import { modMenuDm } from "../../messages/modMenuDm.mjs"
 import { modMenuLog } from "../../messages/modMenuLog.mjs"
 import { modMenuSuccess } from "../../messages/modMenuSuccess.mjs"
@@ -18,6 +13,7 @@ import {
 import { fetchChannel, tryFetchMember } from "../../util/discord.mjs"
 import { logError } from "../../util/error.mjs"
 import { setReasonModal, setBodyModal } from "./modals.mjs"
+import { modMenuState, getPermissions } from "./shared.mjs"
 import {
   ChannelType,
   ComponentType,

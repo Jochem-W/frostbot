@@ -4,13 +4,13 @@ import {
   type ActionStatus,
   type InsertStatus,
 } from "../commands/mod/components.mjs"
+import {
+  getColour,
+  formatDurationAsSingleUnit,
+} from "../commands/mod/shared.mjs"
 import { actionsTable } from "../schema.mjs"
 import { tryFetchMember } from "../util/discord.mjs"
-import {
-  formatDurationAsSingleUnit,
-  getColour,
-  type ModMenuState,
-} from "./modMenu.mjs"
+import { type ModMenuState } from "./modMenu.mjs"
 import {
   ActionRowBuilder,
   ButtonBuilder,

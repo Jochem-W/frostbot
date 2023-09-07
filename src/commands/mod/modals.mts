@@ -1,5 +1,6 @@
-import { modMenuState, modMenu } from "../../messages/modMenu.mjs"
+import { modMenu } from "../../messages/modMenu.mjs"
 import { modal, modalInput } from "../../models/modal.mjs"
+import { modMenuState } from "./shared.mjs"
 import {
   TextInputBuilder,
   TextInputStyle,
