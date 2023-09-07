@@ -1,7 +1,8 @@
 import { LeaderboardCommand } from "./commands/leaderboardCommand.mjs"
 import { ModCommand } from "./commands/mod/chatCommand.mjs"
 import { ModUserContextCommand } from "./commands/mod/userContextCommand.mjs"
-import { RankCommand } from "./commands/rankCommand.mjs"
+import { RankCommand } from "./commands/rank/chatCommand.mjs"
+import { RankContextCommand } from "./commands/rank/contextMenuCommand.mjs"
 import { RestoreLevelCommand } from "./commands/restoreLevelCommand.mjs"
 import { XpCommand } from "./commands/xpCommand.mjs"
 import type { Command } from "./models/command.mjs"
@@ -18,6 +19,7 @@ export const MessageContextMenuCommands: Command<ApplicationCommandType.Message>
 
 export const UserContextMenuCommands: Command<ApplicationCommandType.User>[] = [
   ModUserContextCommand,
+  RankContextCommand,
 ]
 
 export const RegisteredCommands = new Map<
