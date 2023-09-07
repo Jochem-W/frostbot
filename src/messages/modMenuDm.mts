@@ -6,10 +6,7 @@ export function modMenuDm(state: ModMenuState) {
   const { body, timestamp } = state
 
   const embed = new EmbedBuilder()
-    .setAuthor({
-      name: formatTitle(state),
-      iconURL: state.guild.client.user.displayAvatarURL(),
-    })
+    .setTitle(formatTitle(state))
     .setDescription(formatDescription(state))
     .setColor(Colours.red[500])
     .setTimestamp(timestamp)
