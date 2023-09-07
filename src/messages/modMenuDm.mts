@@ -1,6 +1,8 @@
+import { formatDurationAsSingleUnit } from "../commands/mod/shared.mjs"
 import { Colours } from "../models/colours.mjs"
 import { type ModMenuState } from "./modMenu.mjs"
 import { EmbedBuilder } from "discord.js"
+import { Duration } from "luxon"
 
 export function modMenuDm(state: ModMenuState) {
   const { body, timestamp } = state
@@ -47,38 +49,42 @@ function formatTitle({ action, guild }: ModMenuState) {
   return text
 }
 
-function formatDescription({ action, guild }: ModMenuState) {
+function formatDescription({ action, timeout }: ModMenuState) {
   let value
   let prepend = true
   switch (action) {
     case "timeout":
-      value = "timed out in "
+      value = timeout
+        ? `timed out for ${formatDurationAsSingleUnit(
+            Duration.fromMillis(timeout).shiftToAll(),
+          )}`
+        : "timed out."
       break
     case "ban":
-      value = "banned from "
+      value = "banned."
       break
     case "kick":
-      value = "kicked from "
+      value = "kicked."
       break
     case "warn":
-      value = "warned in "
+      value = "warned."
       break
     case "unban":
     case "note":
     case "restrain":
       throw new Error(`DMs can't be created for ${action}`)
     case "untimeout":
-      value = "A moderator has removed your timeout in "
+      value = "A moderator has removed your timeout."
       prepend = false
       break
   }
 
-  if (prepend) {
-    value =
-      "A moderator has decided that your behaviour has been in violation of our rules, and as a result, you have been " +
-      value
+  if (!prepend) {
+    return value
   }
 
-  value += `${guild.name}.`
-  return value
+  return (
+    "Your behaviour has been in violation of our rules, and as a result, you have been " +
+    value
+  )
 }
