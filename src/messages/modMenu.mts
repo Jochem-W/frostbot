@@ -34,7 +34,6 @@ import {
   StringSelectMenuOptionBuilder,
   DiscordAPIError,
   RESTJSONErrorCodes,
-  PermissionFlagsBits,
   bold,
   italic,
   userMention,
@@ -46,8 +45,11 @@ type Permissions = Record<(typeof actionsTable.$inferSelect)["action"], boolean>
 
 export async function modMenu(state: ModMenuState) {
   const { guild, target, action, staff } = state
+  if (staff instanceof User) {
+    throw new Error() // TODO
+  }
 
-  const permissions = await getPermissions(guild, staff)
+  const permissions = await getPermissions(guild, staff, target)
   const actionData = actionMessage(state, permissions)
 
   const options = []
@@ -248,7 +250,11 @@ export function getColour(action: ModMenuState["action"]) {
   }
 }
 
-export async function getPermissions(guild: Guild, target: User | GuildMember) {
+export async function getPermissions(
+  guild: Guild,
+  staff: GuildMember,
+  target: User | GuildMember,
+) {
   const permissions: Permissions = {
     unban: false,
     kick: false,
@@ -260,11 +266,13 @@ export async function getPermissions(guild: Guild, target: User | GuildMember) {
     untimeout: false,
   }
 
+  const me = await guild.members.fetchMe()
+
   let ban
   try {
     ban = await guild.bans.fetch(target)
-    const me = await guild.members.fetchMe()
-    permissions.unban = me.permissions.has(PermissionFlagsBits.BanMembers)
+    permissions.unban =
+      me.permissions.has("BanMembers") && staff.permissions.has("BanMembers")
   } catch (e) {
     if (
       !(e instanceof DiscordAPIError) ||
@@ -274,28 +282,29 @@ export async function getPermissions(guild: Guild, target: User | GuildMember) {
     }
   }
 
-  permissions.warn = true
-
   if (target instanceof User) {
-    permissions.ban = !ban
+    permissions.ban =
+      !ban &&
+      staff.permissions.has("BanMembers") &&
+      me.permissions.has("BanMembers")
     return permissions
   }
 
-  if (target.kickable) {
-    permissions.kick = true
+  permissions.warn = true
+
+  if (staff.roles.highest.comparePositionTo(target.roles.highest) <= 0) {
+    return permissions
   }
 
-  if (target?.moderatable) {
-    permissions.timeout = true
-    permissions.restrain = true
-    if (target.isCommunicationDisabled()) {
-      permissions.untimeout = true
-    }
-  }
+  permissions.kick = target.kickable && staff.permissions.has("KickMembers")
 
-  if (target?.bannable || (!target && !ban)) {
-    permissions.ban = true
-  }
+  permissions.timeout =
+    target.moderatable && staff.permissions.has("ModerateMembers")
+  permissions.restrain = permissions.timeout
+  permissions.untimeout =
+    permissions.timeout && target.isCommunicationDisabled()
+
+  permissions.ban = target.bannable && staff.permissions.has("BanMembers")
 
   return permissions
 }

@@ -285,7 +285,7 @@ export const confirmAction = staticComponent({
     const state = await modMenuState(interaction)
     const { guild, target, action } = state
 
-    const permissions = await getPermissions(guild, target)
+    const permissions = await getPermissions(guild, interaction.member, target)
     if (!permissions[action]) {
       await interaction.update(
         modMenuSuccess({
