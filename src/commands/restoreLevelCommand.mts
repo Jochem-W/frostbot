@@ -4,9 +4,16 @@ import { contextMenuCommand } from "../models/contextMenuCommand.mjs"
 import { usersTable } from "../schema.mjs"
 import { levelForTotalXp, totalXpForLevel } from "../util/xp.mjs"
 import {
+  ActionRowBuilder,
   ApplicationCommandType,
+  ButtonBuilder,
+  ButtonStyle,
   DiscordAPIError,
   EmbedBuilder,
+  InteractionReplyOptions,
+  MessageActionRowComponentBuilder,
+  MessageContextMenuCommandInteraction,
+  MessageCreateOptions,
   RESTJSONErrorCodes,
 } from "discord.js"
 import { eq } from "drizzle-orm"
@@ -21,6 +28,14 @@ const model = z.object({
   user: z.string().or(z.undefined()),
 })
 
+async function reply(
+  interaction: MessageContextMenuCommandInteraction,
+  data: InteractionReplyOptions & MessageCreateOptions,
+) {
+  await interaction.reply(data)
+  await interaction.user.send(data)
+}
+
 export const RestoreLevelCommand = contextMenuCommand({
   name: "Restore level",
   type: ApplicationCommandType.Message,
@@ -30,8 +45,19 @@ export const RestoreLevelCommand = contextMenuCommand({
     const parsed = await model.safeParseAsync(
       message.embeds[0]?.description?.match(regex)?.groups,
     )
+
+    const components = [
+      new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents(
+        new ButtonBuilder()
+          .setStyle(ButtonStyle.Link)
+          .setEmoji("🔗")
+          .setLabel("Go to message")
+          .setURL(message.url),
+      ),
+    ]
+
     if (!parsed.success) {
-      await interaction.reply({
+      await reply(interaction, {
         embeds: [
           new EmbedBuilder()
             .setTitle("Invalid message")
@@ -41,6 +67,7 @@ export const RestoreLevelCommand = contextMenuCommand({
             .setColor(Colours.red[500]),
         ],
         ephemeral: true,
+        components,
       })
       return
     }
@@ -66,7 +93,7 @@ export const RestoreLevelCommand = contextMenuCommand({
       reference?.author.id !== interaction.user.id &&
       data.user !== interaction.user.id
     ) {
-      await interaction.reply({
+      await reply(interaction, {
         embeds: [
           new EmbedBuilder()
             .setTitle("Invalid message")
@@ -76,6 +103,7 @@ export const RestoreLevelCommand = contextMenuCommand({
             .setColor(Colours.red[500]),
         ],
         ephemeral: true,
+        components,
       })
       return
     }
@@ -87,7 +115,7 @@ export const RestoreLevelCommand = contextMenuCommand({
     if (user) {
       const currentLevel = levelForTotalXp(user.xp)
       if (currentLevel >= parsedLevel) {
-        await interaction.reply({
+        await reply(interaction, {
           embeds: [
             new EmbedBuilder()
               .setTitle("Level not restored!")
@@ -99,6 +127,7 @@ export const RestoreLevelCommand = contextMenuCommand({
               .setColor(Colours.red[500]),
           ],
           ephemeral: true,
+          components,
         })
         return
       }
@@ -117,7 +146,7 @@ export const RestoreLevelCommand = contextMenuCommand({
       .onConflictDoUpdate({ target: usersTable.id, set: { xp } })
       .returning()
 
-    await interaction.reply({
+    await reply(interaction, {
       ephemeral: true,
       embeds: [
         new EmbedBuilder()
@@ -127,6 +156,7 @@ export const RestoreLevelCommand = contextMenuCommand({
           )
           .setColor(Colours.blue[500]),
       ],
+      components,
     })
   },
 })
