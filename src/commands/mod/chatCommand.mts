@@ -1,4 +1,5 @@
 import { slashCommand } from "../../models/slashCommand.mjs"
+import { ActSubcommand } from "./subcommands/act.mjs"
 import { AttachSubcommand } from "./subcommands/attach.mjs"
 import { HistorySubcommand } from "./subcommands/history.mjs"
 import { MenuSubcommand } from "./subcommands/menu.mjs"
@@ -9,5 +10,10 @@ export const ModCommand = slashCommand({
   description: "Commands related to moderation",
   defaultMemberPermissions: PermissionFlagsBits.ModerateMembers,
   dmPermission: false,
-  subcommands: [AttachSubcommand, HistorySubcommand, MenuSubcommand],
+  subcommands: [
+    ActSubcommand,
+    AttachSubcommand,
+    HistorySubcommand,
+    MenuSubcommand,
+  ],
 })
