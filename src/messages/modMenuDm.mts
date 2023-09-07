@@ -21,23 +21,33 @@ export function modMenuDm(state: ModMenuState) {
   return { embeds: [embed] }
 }
 
-function formatTitle({ action }: ModMenuState) {
+function formatTitle({ action, guild }: ModMenuState) {
+  let text
   switch (action) {
     case "kick":
-      return `You have been kicked`
+      text = `You have been kicked in `
+      break
     case "warn":
-      return `You have been warned`
+      text = `You have been warned in `
+      break
     case "timeout":
-      return `You have been timed out`
+      text = `You have been timed out in `
+      break
     case "ban":
-      return `You have been banned`
+      text = `You have been banned from `
+      break
     case "unban":
     case "note":
     case "restrain":
       throw new Error(`DMs can't be created for ${action}`)
     case "untimeout":
-      return `Your timeout has been removed`
+      text = `Your timeout has been removed in `
+      break
   }
+
+  text += guild.name
+
+  return text
 }
 
 function formatDescription({ action, guild }: ModMenuState) {
