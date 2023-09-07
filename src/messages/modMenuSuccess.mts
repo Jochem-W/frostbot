@@ -34,6 +34,7 @@ export function modMenuSuccess(data: Data) {
           )
           .setColor(Colours.red[500]),
       ],
+      ephemeral: true,
       components: [],
     }
   }
@@ -115,6 +116,7 @@ export function modMenuSuccess(data: Data) {
   return {
     embeds: [embed],
     components: [],
+    ephemeral: true,
   }
 }
 
