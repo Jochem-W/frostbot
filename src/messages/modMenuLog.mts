@@ -6,7 +6,11 @@ import {
 } from "../commands/mod/components.mjs"
 import { actionsTable } from "../schema.mjs"
 import { tryFetchMember } from "../util/discord.mjs"
-import { formatDuration, getColour, type ModMenuState } from "./modMenu.mjs"
+import {
+  formatDurationAsSingleUnit,
+  getColour,
+  type ModMenuState,
+} from "./modMenu.mjs"
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -22,113 +26,6 @@ import {
 } from "discord.js"
 import { DateTime, Duration } from "luxon"
 
-function formatTitle({
-  action,
-  staff,
-  target,
-}: Pick<ModMenuState, "action" | "staff" | "target">) {
-  const targetUser = target instanceof GuildMember ? target.user : target
-  const staffUser = staff instanceof GuildMember ? staff.user : staff
-
-  switch (action) {
-    case "warn":
-      return `${staffUser.displayName} issued a warning on ${targetUser.displayName}`
-    case "kick":
-    case "timeout":
-    case "ban":
-      return `${staffUser.displayName} issued a ${action} on ${targetUser.displayName}`
-    case "restrain":
-      return `${staffUser.displayName} issued a restraint on ${targetUser.displayName}`
-    case "note":
-      return `${staffUser.displayName} created a note for ${targetUser.displayName}`
-    case "untimeout":
-      return `${staffUser.displayName} removed a timeout for ${targetUser.displayName}`
-    case "unban":
-      return `${staffUser.displayName} removed a ban for ${targetUser.displayName}`
-  }
-}
-
-function formatActionFail({
-  action,
-  target,
-}: Pick<ModMenuState, "action" | "target">) {
-  switch (action) {
-    case "unban":
-    case "kick":
-    case "ban":
-    case "restrain":
-    case "warn":
-      return `I wasn't able to ${action} ${userMention(target.id)}, `
-    case "timeout":
-      return `I wasn't able to time ${userMention(target.id)} out, `
-    case "note":
-      return `I wasn't able to create a note for ${userMention(target.id)}, `
-    case "untimeout":
-      return `I wasn't able to remove the timeout for ${userMention(
-        target.id,
-      )}, `
-  }
-}
-
-function shiftDuration(duration: Duration) {
-  return Duration.fromObject(
-    Object.fromEntries(
-      Object.entries(duration.shiftToAll().toObject()).filter(
-        ([, value]) => value !== 0,
-      ),
-    ),
-  )
-}
-
-export async function modMenuLogFromDb(
-  client: Client<true>,
-  data: typeof actionsTable.$inferSelect,
-) {
-  const guild = await client.guilds.fetch(data.guildId)
-  const targetUser = await client.users.fetch(data.userId)
-  const targetMember = await tryFetchMember(guild, targetUser)
-  const staffUser = await client.users.fetch(data.staffId)
-  const staffMember = await tryFetchMember(guild, staffUser)
-
-  const options: Parameters<typeof modMenuLog>[0] = {
-    dmStatus: data.dmSuccess
-      ? { success: true }
-      : { success: false, error: "unknown" },
-    actionStatus: data.actionSucess
-      ? { success: true }
-      : { success: false, error: "unknown" },
-    insertStatus: { success: true, id: data.id },
-    state: {
-      target: targetMember ?? targetUser,
-      action: data.action,
-      staff: staffMember ?? staffUser,
-      timestamp: data.timestamp,
-    },
-  }
-
-  if (data.deleteMessageSeconds !== null) {
-    options.state.deleteMessageSeconds = data.deleteMessageSeconds
-  }
-
-  if (data.body) {
-    options.state.body = data.body
-  }
-
-  if (data.timeout) {
-    options.state.timeout = data.timeout
-  }
-
-  if (targetMember) {
-    options.state.target = targetMember
-  }
-
-  if (data.timedOutUntil) {
-    options.state.timedOutUntil = data.timedOutUntil
-  }
-
-  return modMenuLog(options)
-}
-
 export function modMenuLog({
   dmStatus,
   actionStatus,
@@ -138,7 +35,7 @@ export function modMenuLog({
   dmStatus: DmStatus
   actionStatus: ActionStatus
   insertStatus: InsertStatus
-  state: Omit<ModMenuState, "permissions" | "guild" | "dm">
+  state: Omit<ModMenuState, "permissions" | "guild">
 }) {
   const {
     staff,
@@ -149,6 +46,7 @@ export function modMenuLog({
     timeout,
     deleteMessageSeconds,
     timedOutUntil,
+    dm,
   } = state
 
   const staffUser = staff instanceof GuildMember ? staff.user : staff
@@ -164,8 +62,17 @@ export function modMenuLog({
     .setColor(getColour(state.action))
     .setTimestamp(timestamp)
 
+  let footer = ""
   if (insertStatus.success) {
-    embed.setFooter({ text: insertStatus.id.toString(10) })
+    footer += insertStatus.id.toString(10)
+  }
+
+  if (dmStatus.success && dm) {
+    footer += footer ? ", DM sent" : "DM sent"
+  }
+
+  if (footer) {
+    embed.setFooter({ text: footer })
   }
 
   if (body) {
@@ -204,7 +111,7 @@ export function modMenuLog({
   if (action === "untimeout" && timedOutUntil) {
     embed.addFields({
       name: "🕑 Timeout amount skipped",
-      value: formatDuration(
+      value: formatDurationAsSingleUnit(
         DateTime.fromJSDate(timedOutUntil).diffNow().shiftToAll(),
       ),
     })
@@ -289,4 +196,112 @@ export function modMenuLog({
     embeds: [embed],
     components,
   }
+}
+
+export async function modMenuLogFromDb(
+  client: Client<true>,
+  data: typeof actionsTable.$inferSelect,
+) {
+  const guild = await client.guilds.fetch(data.guildId)
+  const targetUser = await client.users.fetch(data.userId)
+  const targetMember = await tryFetchMember(guild, targetUser)
+  const staffUser = await client.users.fetch(data.staffId)
+  const staffMember = await tryFetchMember(guild, staffUser)
+
+  const options: Parameters<typeof modMenuLog>[0] = {
+    dmStatus: data.dmSuccess
+      ? { success: true }
+      : { success: false, error: "unknown" },
+    actionStatus: data.actionSucess
+      ? { success: true }
+      : { success: false, error: "unknown" },
+    insertStatus: { success: true, id: data.id },
+    state: {
+      target: targetMember ?? targetUser,
+      action: data.action,
+      staff: staffMember ?? staffUser,
+      timestamp: data.timestamp,
+      dm: data.dm,
+    },
+  }
+
+  if (data.deleteMessageSeconds !== null) {
+    options.state.deleteMessageSeconds = data.deleteMessageSeconds
+  }
+
+  if (data.body) {
+    options.state.body = data.body
+  }
+
+  if (data.timeout) {
+    options.state.timeout = data.timeout
+  }
+
+  if (targetMember) {
+    options.state.target = targetMember
+  }
+
+  if (data.timedOutUntil) {
+    options.state.timedOutUntil = data.timedOutUntil
+  }
+
+  return modMenuLog(options)
+}
+
+function formatTitle({
+  action,
+  staff,
+  target,
+}: Pick<ModMenuState, "action" | "staff" | "target">) {
+  const targetUser = target instanceof GuildMember ? target.user : target
+  const staffUser = staff instanceof GuildMember ? staff.user : staff
+
+  switch (action) {
+    case "warn":
+      return `${staffUser.displayName} issued a warning on ${targetUser.displayName}`
+    case "kick":
+    case "timeout":
+    case "ban":
+      return `${staffUser.displayName} issued a ${action} on ${targetUser.displayName}`
+    case "restrain":
+      return `${staffUser.displayName} issued a restraint on ${targetUser.displayName}`
+    case "note":
+      return `${staffUser.displayName} created a note for ${targetUser.displayName}`
+    case "untimeout":
+      return `${staffUser.displayName} removed a timeout for ${targetUser.displayName}`
+    case "unban":
+      return `${staffUser.displayName} removed a ban for ${targetUser.displayName}`
+  }
+}
+
+function formatActionFail({
+  action,
+  target,
+}: Pick<ModMenuState, "action" | "target">) {
+  switch (action) {
+    case "unban":
+    case "kick":
+    case "ban":
+    case "restrain":
+    case "warn":
+      return `I wasn't able to ${action} ${userMention(target.id)}, `
+    case "timeout":
+      return `I wasn't able to time ${userMention(target.id)} out, `
+    case "note":
+      return `I wasn't able to create a note for ${userMention(target.id)}, `
+    case "untimeout":
+      return `I wasn't able to remove the timeout for ${userMention(
+        target.id,
+      )}, `
+  }
+}
+
+function shiftDuration(duration: Duration) {
+  return Duration.fromObject(
+    Object.fromEntries(
+      Object.entries(duration.shiftToAll().toObject()).filter(
+        ([, value]) => value !== 0,
+      ),
+    ),
+  )
 }

@@ -2,6 +2,25 @@ import { Colours } from "../models/colours.mjs"
 import { type ModMenuState } from "./modMenu.mjs"
 import { EmbedBuilder } from "discord.js"
 
+export function modMenuDm(state: ModMenuState) {
+  const { body, timestamp } = state
+
+  const embed = new EmbedBuilder()
+    .setAuthor({
+      name: formatTitle(state),
+      iconURL: state.guild.client.user.displayAvatarURL(),
+    })
+    .setDescription(formatDescription(state))
+    .setColor(Colours.red[500])
+    .setTimestamp(timestamp)
+
+  if (body) {
+    embed.setFields({ name: "Reason", value: body })
+  }
+
+  return { embeds: [embed] }
+}
+
 function formatTitle({ action }: ModMenuState) {
   switch (action) {
     case "kick":
@@ -15,7 +34,7 @@ function formatTitle({ action }: ModMenuState) {
     case "unban":
     case "note":
     case "restrain":
-      throw new Error() // TODO
+      throw new Error(`DMs can't be created for ${action}`)
     case "untimeout":
       return `Your timeout has been removed`
   }
@@ -40,7 +59,7 @@ function formatDescription({ action, guild }: ModMenuState) {
     case "unban":
     case "note":
     case "restrain":
-      throw new Error() // TODO
+      throw new Error(`DMs can't be created for ${action}`)
     case "untimeout":
       value = "A moderator has removed your timeout in "
       prepend = false
@@ -55,26 +74,4 @@ function formatDescription({ action, guild }: ModMenuState) {
 
   value += `${guild.name}.`
   return value
-}
-
-export function modMenuDm(state: ModMenuState) {
-  const { action, body, timestamp } = state
-  if (!action) {
-    throw new Error() // TODO
-  }
-
-  const embed = new EmbedBuilder()
-    .setAuthor({
-      name: formatTitle(state),
-      iconURL: state.guild.client.user.displayAvatarURL(),
-    })
-    .setDescription(formatDescription(state))
-    .setColor(Colours.red[500])
-    .setTimestamp(timestamp)
-
-  if (body) {
-    embed.setFields({ name: "Reason", value: body })
-  }
-
-  return { embeds: [embed] }
 }

@@ -7,45 +7,6 @@ import { Colours } from "../models/colours.mjs"
 import { type ModMenuState } from "./modMenu.mjs"
 import { EmbedBuilder, userMention } from "discord.js"
 
-function formatAction({ action, target }: ModMenuState) {
-  let value
-  let prepend = true
-  switch (action) {
-    case "unban":
-      value = "unbanned"
-      break
-    case "kick":
-      value = "kicked"
-      break
-    case "warn":
-      value = "warned"
-      break
-    case "timeout":
-      value = "timed out"
-      break
-    case "ban":
-      value = "banned"
-      break
-    case "note":
-      value = `A note has been created for ${userMention(target.id)}.`
-      prepend = false
-      break
-    case "restrain":
-      value = "restrained"
-      break
-    case "untimeout":
-      value = `${userMention(target.id)}'s timeout has been removed.`
-      prepend = false
-      break
-  }
-
-  if (prepend) {
-    value = `${userMention(target.id)} has been ${value}.`
-  }
-
-  return value
-}
-
 type Data =
   | {
       state: ModMenuState
@@ -61,17 +22,13 @@ export function modMenuSuccess(data: Data) {
   const { state } = data
   const { target, action } = state
 
-  if (action === undefined) {
-    throw new Error() // TODO
-  }
-
   if (!("dmStatus" in data)) {
     return {
       embeds: [
         new EmbedBuilder()
           .setTitle("Failure!")
           .setDescription(
-            `I do not have the required permissions to perform a ${action} on ${userMention(
+            `You/I do not have the required permissions to perform a ${action} on ${userMention(
               target.id,
             )}, or the user is not in the server.`,
           )
@@ -159,4 +116,43 @@ export function modMenuSuccess(data: Data) {
     embeds: [embed],
     components: [],
   }
+}
+
+function formatAction({ action, target }: ModMenuState) {
+  let value
+  let prepend = true
+  switch (action) {
+    case "unban":
+      value = "unbanned"
+      break
+    case "kick":
+      value = "kicked"
+      break
+    case "warn":
+      value = "warned"
+      break
+    case "timeout":
+      value = "timed out"
+      break
+    case "ban":
+      value = "banned"
+      break
+    case "note":
+      value = `A note has been created for ${userMention(target.id)}.`
+      prepend = false
+      break
+    case "restrain":
+      value = "restrained"
+      break
+    case "untimeout":
+      value = `${userMention(target.id)}'s timeout has been removed.`
+      prepend = false
+      break
+  }
+
+  if (prepend) {
+    value = `${userMention(target.id)} has been ${value}.`
+  }
+
+  return value
 }

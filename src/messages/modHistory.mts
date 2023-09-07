@@ -2,7 +2,7 @@ import { Drizzle } from "../clients.mjs"
 import { Colours } from "../models/colours.mjs"
 import { actionsTable } from "../schema.mjs"
 import { tryFetchMember } from "../util/discord.mjs"
-import { formatDuration, getColour } from "./modMenu.mjs"
+import { formatDurationAsSingleUnit, getColour } from "./modMenu.mjs"
 import {
   bold,
   Client,
@@ -14,58 +14,6 @@ import {
 } from "discord.js"
 import { eq, asc } from "drizzle-orm"
 import { Duration } from "luxon"
-
-async function formatAction(
-  client: Client<true>,
-  { action, staffId, timeout }: typeof actionsTable.$inferSelect,
-) {
-  const staff = await client.users.fetch(staffId)
-
-  switch (action) {
-    case "unban":
-      return {
-        name: `Unbanned by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
-      }
-    case "kick":
-      return {
-        name: `Kicked by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
-      }
-    case "warn":
-      return {
-        name: `Warned by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
-      }
-    case "timeout":
-      return {
-        name: `Timed out for ${formatDuration(
-          Duration.fromMillis(timeout ?? 0).shiftToAll(),
-        )} by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
-      }
-    case "ban":
-      return {
-        name: `Banned by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
-      }
-    case "note":
-      return {
-        name: `Note created by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
-      }
-    case "restrain":
-      return {
-        name: `Restrained by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
-      }
-    case "untimeout":
-      return {
-        name: `Timeout removed by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
-      }
-  }
-}
 
 export async function modHistory(user: User, guild: Guild) {
   const history = await Drizzle.select()
@@ -133,7 +81,7 @@ export async function modHistory(user: User, guild: Guild) {
     footer += `ID: ${entry.id}`
 
     const embed = new EmbedBuilder()
-      .setAuthor(await formatAction(user.client, entry))
+      .setAuthor(await formatActionAsAuthor(user.client, entry))
       .setDescription(entry.body)
       .setFooter({ text: footer })
       .setTimestamp(entry.timestamp)
@@ -158,4 +106,56 @@ export async function modHistory(user: User, guild: Guild) {
   }
 
   return replies
+}
+
+async function formatActionAsAuthor(
+  client: Client<true>,
+  { action, staffId, timeout }: typeof actionsTable.$inferSelect,
+) {
+  const staff = await client.users.fetch(staffId)
+
+  switch (action) {
+    case "unban":
+      return {
+        name: `Unbanned by ${staff.displayName}`,
+        iconURL: staff.displayAvatarURL(),
+      }
+    case "kick":
+      return {
+        name: `Kicked by ${staff.displayName}`,
+        iconURL: staff.displayAvatarURL(),
+      }
+    case "warn":
+      return {
+        name: `Warned by ${staff.displayName}`,
+        iconURL: staff.displayAvatarURL(),
+      }
+    case "timeout":
+      return {
+        name: `Timed out for ${formatDurationAsSingleUnit(
+          Duration.fromMillis(timeout ?? 0).shiftToAll(),
+        )} by ${staff.displayName}`,
+        iconURL: staff.displayAvatarURL(),
+      }
+    case "ban":
+      return {
+        name: `Banned by ${staff.displayName}`,
+        iconURL: staff.displayAvatarURL(),
+      }
+    case "note":
+      return {
+        name: `Note created by ${staff.displayName}`,
+        iconURL: staff.displayAvatarURL(),
+      }
+    case "restrain":
+      return {
+        name: `Restrained by ${staff.displayName}`,
+        iconURL: staff.displayAvatarURL(),
+      }
+    case "untimeout":
+      return {
+        name: `Timeout removed by ${staff.displayName}`,
+        iconURL: staff.displayAvatarURL(),
+      }
+  }
 }

@@ -41,16 +41,31 @@ import {
 import { desc, eq, sql } from "drizzle-orm"
 import type { Duration } from "luxon"
 
+const bodyLength = 75
+
 type Permissions = Record<(typeof actionsTable.$inferSelect)["action"], boolean>
+
+export type ModMenuState = {
+  guild: Guild
+  target: User | GuildMember
+  action: (typeof actionsTable.$inferInsert)["action"]
+  body?: string
+  dm: boolean
+  staff: User | GuildMember
+  timeout?: number
+  timestamp: Date
+  timedOutUntil?: Date
+  deleteMessageSeconds?: number
+}
 
 export async function modMenu(state: ModMenuState) {
   const { guild, target, action, staff } = state
   if (staff instanceof User) {
-    throw new Error() // TODO
+    throw new Error("Mod menus can only be created for members, not users")
   }
 
   const permissions = await getPermissions(guild, staff, target)
-  const actionData = actionMessage(state, permissions)
+  const actionData = actionControls(state, permissions)
 
   const options = []
   if (permissions.kick) {
@@ -173,7 +188,7 @@ export async function modMenu(state: ModMenuState) {
         })
         .setFields({
           name: "Quick summary",
-          value: summary(guild, target),
+          value: targetSummary(guild, target),
         })
         .setColor(Colours.cyan[200])
         .setFooter({ text: target.id }),
@@ -192,61 +207,6 @@ export async function modMenu(state: ModMenuState) {
       ...actionData.components,
     ],
     ephemeral: true,
-  }
-}
-
-export function formatDuration(duration: Duration) {
-  let amount
-  let unit
-
-  if (duration.years > 0) {
-    amount = Math.round(duration.as("years"))
-    unit = "year"
-  } else if (duration.quarters > 0) {
-    amount = Math.round(duration.as("quarters"))
-    unit = "quarter"
-  } else if (duration.months > 0) {
-    amount = Math.round(duration.as("months"))
-    unit = "month"
-  } else if (duration.weeks > 0) {
-    amount = Math.round(duration.as("weeks"))
-    unit = "week"
-  } else if (duration.days > 0) {
-    amount = Math.round(duration.as("days"))
-    unit = "day"
-  } else if (duration.hours > 0) {
-    amount = Math.round(duration.as("hours"))
-    unit = "hour"
-  } else if (duration.minutes > 0) {
-    amount = Math.round(duration.as("minutes"))
-    unit = "minute"
-  } else if (duration.seconds > 0) {
-    amount = Math.round(duration.as("seconds"))
-    unit = "second"
-  } else if (duration.milliseconds > 0) {
-    amount = Math.round(duration.as("milliseconds"))
-    unit = "millisecond"
-  } else {
-    throw new Error() // TODO
-  }
-
-  return `${amount} ${unit}${amount !== 1 ? "s" : ""}`
-}
-
-export function getColour(action: ModMenuState["action"]) {
-  switch (action) {
-    case "unban":
-    case "ban":
-      return Colours.red[600]
-    case "kick":
-    case "timeout":
-    case "restrain":
-    case "untimeout":
-      return Colours.red[500]
-    case "warn":
-      return Colours.red[400]
-    case "note":
-      return Colours.red[300]
   }
 }
 
@@ -309,19 +269,6 @@ export async function getPermissions(
   return permissions
 }
 
-export type ModMenuState = {
-  guild: Guild
-  target: User | GuildMember
-  action: (typeof actionsTable.$inferInsert)["action"]
-  body?: string
-  dm: boolean
-  staff: User | GuildMember
-  timeout?: number
-  timestamp: Date
-  timedOutUntil?: Date
-  deleteMessageSeconds?: number
-}
-
 export async function modMenuState({
   message,
   member,
@@ -331,7 +278,7 @@ export async function modMenuState({
   | ModalMessageModalSubmitInteraction<"cached">) {
   const userId = message.embeds[0]?.footer?.text
   if (!userId) {
-    throw new Error() // TODO
+    throw new Error("Invalid mod menu: no user ID")
   }
 
   const target = await message.client.users.fetch(userId)
@@ -340,14 +287,14 @@ export async function modMenuState({
   const state: ModMenuState = {
     guild,
     target,
+    action: "restrain",
     dm: false,
     staff: member,
-    action: "restrain",
     timestamp: createdAt,
     deleteMessageSeconds: 0,
   }
 
-  const targetMember = await tryFetchMember(state.guild, state.target)
+  const targetMember = await tryFetchMember(guild, target)
   if (targetMember) {
     state.target = targetMember
 
@@ -358,15 +305,16 @@ export async function modMenuState({
 
   const components = message.components.map((row) => row.components).flat()
 
-  const option = components
+  const action = components
     .find(
       (component): component is StringSelectMenuComponent =>
-        component.type === ComponentType.StringSelect,
+        component.type === ComponentType.StringSelect &&
+        component.customId === actionDropdown,
     )
     ?.options.find((option) => option.default)?.value
 
-  if (option) {
-    state.action = await insertActionsSchema.shape.action.parseAsync(option)
+  if (action) {
+    state.action = await insertActionsSchema.shape.action.parseAsync(action)
   }
 
   const reason = message.embeds[2]?.fields.find(
@@ -376,15 +324,12 @@ export async function modMenuState({
     state.body = reason
   }
 
-  const dm = components.find(
-    (component): component is ButtonComponent =>
-      component.type === ComponentType.Button &&
-      (component.style === ButtonStyle.Danger ||
-        component.style === ButtonStyle.Success),
-  )
-  if (dm) {
-    state.dm = dm.style === ButtonStyle.Success
-  }
+  state.dm =
+    components.find(
+      (component): component is ButtonComponent =>
+        component.type === ComponentType.Button &&
+        component.customId === toggleDm,
+    )?.style === ButtonStyle.Success
 
   const timeout = components
     .find(
@@ -413,7 +358,62 @@ export async function modMenuState({
   return state
 }
 
-function formatAction({
+export function formatDurationAsSingleUnit(duration: Duration) {
+  let amount
+  let unit
+
+  if (duration.years > 0) {
+    amount = Math.round(duration.as("years"))
+    unit = "year"
+  } else if (duration.quarters > 0) {
+    amount = Math.round(duration.as("quarters"))
+    unit = "quarter"
+  } else if (duration.months > 0) {
+    amount = Math.round(duration.as("months"))
+    unit = "month"
+  } else if (duration.weeks > 0) {
+    amount = Math.round(duration.as("weeks"))
+    unit = "week"
+  } else if (duration.days > 0) {
+    amount = Math.round(duration.as("days"))
+    unit = "day"
+  } else if (duration.hours > 0) {
+    amount = Math.round(duration.as("hours"))
+    unit = "hour"
+  } else if (duration.minutes > 0) {
+    amount = Math.round(duration.as("minutes"))
+    unit = "minute"
+  } else if (duration.seconds > 0) {
+    amount = Math.round(duration.as("seconds"))
+    unit = "second"
+  } else if (duration.milliseconds > 0) {
+    amount = Math.round(duration.as("milliseconds"))
+    unit = "millisecond"
+  } else {
+    return ""
+  }
+
+  return `${amount} ${unit}${amount !== 1 ? "s" : ""}`
+}
+
+export function getColour(action: ModMenuState["action"]) {
+  switch (action) {
+    case "unban":
+    case "ban":
+      return Colours.red[600]
+    case "kick":
+    case "timeout":
+    case "restrain":
+    case "untimeout":
+      return Colours.red[500]
+    case "warn":
+      return Colours.red[400]
+    case "note":
+      return Colours.red[300]
+  }
+}
+
+function formatActionAsQuestion({
   action,
   target,
   timeout,
@@ -480,7 +480,7 @@ function formatAction({
   return { title, components }
 }
 
-function actionMessage(state: ModMenuState, permissions: Permissions) {
+function actionControls(state: ModMenuState, permissions: Permissions) {
   const { action, body, dm, timeout } = state
   const components = []
 
@@ -539,7 +539,7 @@ function actionMessage(state: ModMenuState, permissions: Permissions) {
     embed.addFields({ name: "⚠️ Notice", value: errors.join("\n") })
   }
 
-  const actionData = formatAction(state)
+  const actionData = formatActionAsQuestion(state)
   if (actionData.components) {
     components.push(...actionData.components)
   }
@@ -576,7 +576,7 @@ function actionMessage(state: ModMenuState, permissions: Permissions) {
   }
 }
 
-function summary(guild: Guild, target: User | GuildMember) {
+function targetSummary(guild: Guild, target: User | GuildMember) {
   if (target instanceof User) {
     return `Currently, ${userMention(target.id)} isn't in ${
       guild.name
@@ -598,7 +598,7 @@ function summary(guild: Guild, target: User | GuildMember) {
   }.`
 }
 
-function formatActionForSummary(
+function formatActionForEntrySummary(
   action: (typeof actionsTable.$inferSelect)["action"],
 ) {
   switch (action) {
@@ -621,13 +621,11 @@ function formatActionForSummary(
   }
 }
 
-const bodyLength = 75
-
 function entrySummary(
   { staff }: ModMenuState,
   { action, timestamp, body }: typeof actionsTable.$inferSelect,
 ) {
-  let line = `- ${bold(formatActionForSummary(action))} ${time(
+  let line = `- ${bold(formatActionForEntrySummary(action))} ${time(
     timestamp,
     TimestampStyles.RelativeTime,
   )} by ${userMention(staff.id)}`
