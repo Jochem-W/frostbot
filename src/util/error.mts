@@ -6,6 +6,10 @@ import { ChannelType, Client, EmbedBuilder, codeBlock } from "discord.js"
 export async function logError(client: Client, error: unknown) {
   console.log(error)
 
+  if (!Config.channels.error) {
+    return
+  }
+
   try {
     if (!client.isReady()) {
       console.error("Client wasn't ready to properly log error", error)
