@@ -14,7 +14,7 @@ const model = z.object({
     dropoff: z.number(),
     time: z.number(),
   }),
-  baseUrl: z.string().url(),
+  url: z.object({ internal: z.string().url(), external: z.string().url() }),
   s3: z.object({
     bucket: z.string(),
     bucketUrl: z.string().url(),

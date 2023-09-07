@@ -21,7 +21,7 @@ export const LeaderboardCommand = slashCommand({
           .setDescription(
             `The online leaderboard can be viewed ${hyperlink(
               "here",
-              Config.baseUrl,
+              Config.url.external,
             )}!`,
           )
           .setColor(Colours.blue[500]),

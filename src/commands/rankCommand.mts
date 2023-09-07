@@ -56,20 +56,19 @@ export const RankCommand = slashCommand({
       }
     }
 
-    const params = new URLSearchParams({
-      id: user.id,
-      name: user.displayName,
-      discriminator: user.discriminator,
-      xp: levelData.xp.toString(10),
-      position: levelData.position,
-    })
+    const url = new URL("card", Config.url.internal)
+    url.searchParams.set("id", user.id)
+    url.searchParams.set("name", user.displayName)
+    url.searchParams.set("discriminator", user.discriminator)
+    url.searchParams.set("xp", levelData.xp.toString(10))
+    url.searchParams.set("position", levelData.position)
 
     if (user.avatar) {
-      params.set("avatar", user.avatar)
+      url.searchParams.set("avatar", user.avatar)
     }
 
     const page = await browser.newPage()
-    await page.goto(`${Config.baseUrl}/card?${params.toString()}`)
+    await page.goto(url.toString())
     const screenshot = await page.screenshot()
 
     await interaction.reply({

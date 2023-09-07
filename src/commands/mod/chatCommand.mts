@@ -211,7 +211,7 @@ export const ModCommand = slashCommand({
         const embeds = fulfilled.map((result) =>
           new EmbedBuilder()
             .setImage(result.value.url.toString())
-            .setURL(Config.baseUrl),
+            .setURL(Config.url.external),
         )
 
         let firstEmbed = embeds[0]
@@ -265,7 +265,7 @@ export const ModCommand = slashCommand({
         const logEmbeds = message.embeds.map(
           (embed) => new EmbedBuilder(embed.data),
         )
-        logEmbeds[0]?.setURL(Config.baseUrl)
+        logEmbeds[0]?.setURL(Config.url.external)
         if (!logEmbeds[0]?.data.image) {
           logEmbeds[0]?.setImage(fulfilled[0]?.value.url.toString() ?? null)
           fulfilled.shift()
@@ -275,7 +275,7 @@ export const ModCommand = slashCommand({
           ...fulfilled.map((result) =>
             new EmbedBuilder()
               .setImage(result.value.url.toString())
-              .setURL(Config.baseUrl),
+              .setURL(Config.url.external),
           ),
         )
         await message.edit({ embeds: logEmbeds })
