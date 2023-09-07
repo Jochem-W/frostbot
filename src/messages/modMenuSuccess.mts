@@ -5,9 +5,9 @@ import type {
 } from "../commands/mod/components.mjs"
 import { Colours } from "../models/colours.mjs"
 import { type ModMenuState } from "./modMenu.mjs"
-import { EmbedBuilder } from "discord.js"
+import { EmbedBuilder, userMention } from "discord.js"
 
-function formatAction({ action, targetUser }: ModMenuState) {
+function formatAction({ action, target }: ModMenuState) {
   let value
   let prepend = true
   switch (action) {
@@ -27,20 +27,20 @@ function formatAction({ action, targetUser }: ModMenuState) {
       value = "banned"
       break
     case "note":
-      value = `A note has been created for ${targetUser.toString()}.`
+      value = `A note has been created for ${userMention(target.id)}.`
       prepend = false
       break
     case "restrain":
       value = "restrained"
       break
     case "untimeout":
-      value = `${targetUser.toString()}'s timeout has been removed.`
+      value = `${userMention(target.id)}'s timeout has been removed.`
       prepend = false
       break
   }
 
   if (prepend) {
-    value = `${targetUser.toString()} has been ${value}.`
+    value = `${userMention(target.id)} has been ${value}.`
   }
 
   return value
@@ -59,7 +59,7 @@ type Data =
 
 export function modMenuSuccess(data: Data) {
   const { state } = data
-  const { targetUser, action } = state
+  const { target, action } = state
 
   if (action === undefined) {
     throw new Error() // TODO
@@ -71,7 +71,9 @@ export function modMenuSuccess(data: Data) {
         new EmbedBuilder()
           .setTitle("Failure!")
           .setDescription(
-            `I do not have the required permissions to perform a ${action} on ${targetUser.toString()}, or the user is not in the server.`,
+            `I do not have the required permissions to perform a ${action} on ${userMention(
+              target.id,
+            )}, or the user is not in the server.`,
           )
           .setColor(Colours.red[500]),
       ],

@@ -1,10 +1,6 @@
 import { Drizzle } from "../../clients.mjs"
 import { modHistory } from "../../messages/modHistory.mjs"
-import {
-  getPermissions,
-  modMenu,
-  type ModMenuState,
-} from "../../messages/modMenu.mjs"
+import { modMenu, type ModMenuState } from "../../messages/modMenu.mjs"
 import { Colours } from "../../models/colours.mjs"
 import { Config } from "../../models/config.mjs"
 import {
@@ -57,7 +53,7 @@ export const ModCommand = slashCommand({
             .setDescription("Target user"),
         ),
       ],
-      async handle(interaction, targetUser) {
+      async handle(interaction, target) {
         if (!interaction.inCachedGuild()) {
           return
         }
@@ -66,23 +62,17 @@ export const ModCommand = slashCommand({
 
         const state: ModMenuState = {
           guild,
-          targetUser,
+          target,
           dm: false,
-          staffMember: interaction.member,
+          staff: interaction.member,
           action: "restrain",
-          permissions: await getPermissions(guild, targetUser),
           timestamp: interaction.createdAt,
           deleteMessageSeconds: 0,
         }
 
-        const targetMember = await tryFetchMember(guild, targetUser)
+        const targetMember = await tryFetchMember(guild, target)
         if (targetMember) {
-          state.targetMember = targetMember
-          state.permissions = await getPermissions(
-            guild,
-            targetUser,
-            targetMember,
-          )
+          state.target = targetMember
         }
 
         await interaction.reply(await modMenu(state))

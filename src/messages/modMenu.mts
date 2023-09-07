@@ -37,6 +37,7 @@ import {
   PermissionFlagsBits,
   bold,
   italic,
+  userMention,
 } from "discord.js"
 import { desc, eq, sql } from "drizzle-orm"
 import type { Duration } from "luxon"
@@ -44,9 +45,10 @@ import type { Duration } from "luxon"
 type Permissions = Record<(typeof actionsTable.$inferSelect)["action"], boolean>
 
 export async function modMenu(state: ModMenuState) {
-  const { guild, targetUser, targetMember, action, permissions } = state
+  const { guild, target, action, staff } = state
 
-  const actionData = actionMessage(state)
+  const permissions = await getPermissions(guild, staff)
+  const actionData = actionMessage(state, permissions)
 
   const options = []
   if (permissions.kick) {
@@ -128,14 +130,14 @@ export async function modMenu(state: ModMenuState) {
 
   const history = await Drizzle.select()
     .from(actionsTable)
-    .where(eq(actionsTable.userId, targetUser.id))
+    .where(eq(actionsTable.userId, target.id))
     .orderBy(desc(actionsTable.timestamp))
     .limit(5)
   const [countData] = await Drizzle.select({
     count: sql<string>`count (*)`,
   })
     .from(actionsTable)
-    .where(eq(actionsTable.userId, targetUser.id))
+    .where(eq(actionsTable.userId, target.id))
 
   const count = countData?.count ? BigInt(countData.count) : null
 
@@ -158,6 +160,8 @@ export async function modMenu(state: ModMenuState) {
     description = lines.join("\n")
   }
 
+  const targetUser = target instanceof GuildMember ? target.user : target
+
   return {
     embeds: [
       new EmbedBuilder()
@@ -167,10 +171,10 @@ export async function modMenu(state: ModMenuState) {
         })
         .setFields({
           name: "Quick summary",
-          value: summary(guild, targetUser, targetMember),
+          value: summary(guild, target),
         })
         .setColor(Colours.cyan[200])
-        .setFooter({ text: targetUser.id }),
+        .setFooter({ text: target.id }),
       new EmbedBuilder()
         .setTitle("History")
         .setDescription(description)
@@ -244,25 +248,21 @@ export function getColour(action: ModMenuState["action"]) {
   }
 }
 
-export async function getPermissions(
-  guild: ModMenuState["guild"],
-  targetUser: ModMenuState["targetUser"],
-  targetMember?: ModMenuState["targetMember"],
-) {
+export async function getPermissions(guild: Guild, target: User | GuildMember) {
   const permissions: Permissions = {
     unban: false,
     kick: false,
     warn: false,
     timeout: false,
     ban: false,
-    note: false,
+    note: true,
     restrain: false,
     untimeout: false,
   }
 
   let ban
   try {
-    ban = await guild.bans.fetch(targetUser)
+    ban = await guild.bans.fetch(target)
     const me = await guild.members.fetchMe()
     permissions.unban = me.permissions.has(PermissionFlagsBits.BanMembers)
   } catch (e) {
@@ -274,41 +274,40 @@ export async function getPermissions(
     }
   }
 
-  if (targetMember?.kickable) {
+  permissions.warn = true
+
+  if (target instanceof User) {
+    permissions.ban = !ban
+    return permissions
+  }
+
+  if (target.kickable) {
     permissions.kick = true
   }
 
-  if (targetMember) {
-    permissions.warn = true
-  }
-
-  if (targetMember?.moderatable) {
+  if (target?.moderatable) {
     permissions.timeout = true
     permissions.restrain = true
-    if (targetMember.isCommunicationDisabled()) {
+    if (target.isCommunicationDisabled()) {
       permissions.untimeout = true
     }
   }
 
-  if (targetMember?.bannable || (!targetMember && !ban)) {
+  if (target?.bannable || (!target && !ban)) {
     permissions.ban = true
   }
-
-  permissions.note = true
 
   return permissions
 }
 
 export type ModMenuState = {
   guild: Guild
-  targetUser: User
-  targetMember?: GuildMember
+  target: User | GuildMember
   action: (typeof actionsTable.$inferInsert)["action"]
   body?: string
   dm: boolean
-  staffMember: GuildMember
+  staff: User | GuildMember
   timeout?: number
-  permissions: Permissions
   timestamp: Date
   timedOutUntil?: Date
   deleteMessageSeconds?: number
@@ -326,24 +325,22 @@ export async function modMenuState({
     throw new Error() // TODO
   }
 
-  const targetUser = await message.client.users.fetch(userId)
+  const target = await message.client.users.fetch(userId)
   const { guild } = message
 
   const state: ModMenuState = {
     guild,
-    targetUser,
+    target,
     dm: false,
-    staffMember: member,
+    staff: member,
     action: "restrain",
-    permissions: await getPermissions(guild, targetUser),
     timestamp: createdAt,
     deleteMessageSeconds: 0,
   }
 
-  const targetMember = await tryFetchMember(state.guild, state.targetUser)
+  const targetMember = await tryFetchMember(state.guild, state.target)
   if (targetMember) {
-    state.targetMember = targetMember
-    state.permissions = await getPermissions(guild, targetUser, targetMember)
+    state.target = targetMember
 
     if (targetMember.communicationDisabledUntil) {
       state.timedOutUntil = targetMember.communicationDisabledUntil
@@ -409,10 +406,12 @@ export async function modMenuState({
 
 function formatAction({
   action,
-  targetUser,
+  target,
   timeout,
   deleteMessageSeconds,
 }: ModMenuState) {
+  const targetUser = target instanceof GuildMember ? target.user : target
+
   const components = []
   let title
   let postfix = false
@@ -472,12 +471,12 @@ function formatAction({
   return { title, components }
 }
 
-function actionMessage(state: ModMenuState) {
+function actionMessage(state: ModMenuState, permissions: Permissions) {
   const { action, body, dm, timeout } = state
   const components = []
 
   if (action === "restrain") {
-    if (state.permissions.restrain) {
+    if (permissions.restrain) {
       components.push(
         new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents(
           new ButtonBuilder()
@@ -568,24 +567,24 @@ function actionMessage(state: ModMenuState) {
   }
 }
 
-function summary(guild: Guild, user: User, member?: GuildMember | null) {
-  if (!member) {
-    return `Currently, ${user.toString()} isn't in ${
+function summary(guild: Guild, target: User | GuildMember) {
+  if (target instanceof User) {
+    return `Currently, ${userMention(target.id)} isn't in ${
       guild.name
     }. They created their account ${time(
-      user.createdAt,
+      target.createdAt,
       TimestampStyles.RelativeTime,
     )}.`
   }
 
-  return `Currently, ${user.toString()} is in ${
+  return `Currently, ${userMention(target.id)} is in ${
     guild.name
   }. They created their account ${time(
-    user.createdAt,
+    target.user.createdAt,
     TimestampStyles.RelativeTime,
   )} and joined ${guild.name} ${
-    member.joinedAt
-      ? time(member.joinedAt, TimestampStyles.RelativeTime)
+    target.joinedAt
+      ? time(target.joinedAt, TimestampStyles.RelativeTime)
       : "at an unknown time"
   }.`
 }
@@ -616,13 +615,13 @@ function formatActionForSummary(
 const bodyLength = 75
 
 function entrySummary(
-  { staffMember }: ModMenuState,
+  { staff }: ModMenuState,
   { action, timestamp, body }: typeof actionsTable.$inferSelect,
 ) {
   let line = `- ${bold(formatActionForSummary(action))} ${time(
     timestamp,
     TimestampStyles.RelativeTime,
-  )} by ${staffMember.user.toString()}`
+  )} by ${userMention(staff.id)}`
   if (!body) {
     return line
   }

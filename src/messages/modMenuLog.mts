@@ -16,49 +16,57 @@ import {
   time,
   type MessageActionRowComponentBuilder,
   Client,
+  GuildMember,
+  userMention,
+  User,
 } from "discord.js"
 import { DateTime, Duration } from "luxon"
 
 function formatTitle({
   action,
-  staffMember,
-  targetUser,
-}: Pick<ModMenuState, "action" | "staffMember" | "targetUser">) {
+  staff,
+  target,
+}: Pick<ModMenuState, "action" | "staff" | "target">) {
+  const targetUser = target instanceof GuildMember ? target.user : target
+  const staffUser = staff instanceof GuildMember ? staff.user : staff
+
   switch (action) {
     case "warn":
-      return `${staffMember.user.displayName} issued a warning on ${targetUser.displayName}`
+      return `${staffUser.displayName} issued a warning on ${targetUser.displayName}`
     case "kick":
     case "timeout":
     case "ban":
-      return `${staffMember.user.displayName} issued a ${action} on ${targetUser.displayName}`
+      return `${staffUser.displayName} issued a ${action} on ${targetUser.displayName}`
     case "restrain":
-      return `${staffMember.user.displayName} issued a restraint on ${targetUser.displayName}`
+      return `${staffUser.displayName} issued a restraint on ${targetUser.displayName}`
     case "note":
-      return `${staffMember.user.displayName} created a note for ${targetUser.displayName}`
+      return `${staffUser.displayName} created a note for ${targetUser.displayName}`
     case "untimeout":
-      return `${staffMember.user.displayName} removed a timeout for ${targetUser.displayName}`
+      return `${staffUser.displayName} removed a timeout for ${targetUser.displayName}`
     case "unban":
-      return `${staffMember.user.displayName} removed a ban for ${targetUser.displayName}`
+      return `${staffUser.displayName} removed a ban for ${targetUser.displayName}`
   }
 }
 
 function formatActionFail({
   action,
-  targetUser,
-}: Pick<ModMenuState, "action" | "targetUser">) {
+  target,
+}: Pick<ModMenuState, "action" | "target">) {
   switch (action) {
     case "unban":
     case "kick":
     case "ban":
     case "restrain":
     case "warn":
-      return `I wasn't able to ${action} ${targetUser.toString()}, `
+      return `I wasn't able to ${action} ${userMention(target.id)}, `
     case "timeout":
-      return `I wasn't able to time ${targetUser.toString()} out, `
+      return `I wasn't able to time ${userMention(target.id)} out, `
     case "note":
-      return `I wasn't able to create a note for ${targetUser.toString()}, `
+      return `I wasn't able to create a note for ${userMention(target.id)}, `
     case "untimeout":
-      return `I wasn't able to remove the timeout for ${targetUser.toString()}, `
+      return `I wasn't able to remove the timeout for ${userMention(
+        target.id,
+      )}, `
   }
 }
 
@@ -79,7 +87,8 @@ export async function modMenuLogFromDb(
   const guild = await client.guilds.fetch(data.guildId)
   const targetUser = await client.users.fetch(data.userId)
   const targetMember = await tryFetchMember(guild, targetUser)
-  const staffMember = await guild.members.fetch(data.staffId)
+  const staffUser = await client.users.fetch(data.staffId)
+  const staffMember = await tryFetchMember(guild, staffUser)
 
   const options: Parameters<typeof modMenuLog>[0] = {
     dmStatus: data.dmSuccess
@@ -90,9 +99,9 @@ export async function modMenuLogFromDb(
       : { success: false, error: "unknown" },
     insertStatus: { success: true, id: data.id },
     state: {
-      targetUser,
+      target: targetMember ?? targetUser,
       action: data.action,
-      staffMember,
+      staff: staffMember ?? staffUser,
       timestamp: data.timestamp,
     },
   }
@@ -110,7 +119,7 @@ export async function modMenuLogFromDb(
   }
 
   if (targetMember) {
-    options.state.targetMember = targetMember
+    options.state.target = targetMember
   }
 
   if (data.timedOutUntil) {
@@ -132,9 +141,8 @@ export function modMenuLog({
   state: Omit<ModMenuState, "permissions" | "guild" | "dm">
 }) {
   const {
-    staffMember,
-    targetUser,
-    targetMember,
+    staff,
+    target,
     body,
     action,
     timestamp,
@@ -143,10 +151,14 @@ export function modMenuLog({
     timedOutUntil,
   } = state
 
+  const staffUser = staff instanceof GuildMember ? staff.user : staff
+  const targetUser = target instanceof GuildMember ? target.user : target
+  const targetMember = target instanceof User ? null : target
+
   const embed = new EmbedBuilder()
     .setAuthor({
       name: formatTitle(state),
-      iconURL: staffMember.user.displayAvatarURL(),
+      iconURL: staffUser.displayAvatarURL(),
     })
     .setThumbnail(targetUser.displayAvatarURL())
     .setColor(getColour(state.action))
@@ -199,7 +211,7 @@ export function modMenuLog({
   }
 
   embed.addFields(
-    { name: "👤 User", value: targetUser.toString(), inline: true },
+    { name: "👤 User", value: userMention(targetUser.id), inline: true },
     { name: "#️⃣ User ID", value: targetUser.id, inline: true },
   )
 

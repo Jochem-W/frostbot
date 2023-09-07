@@ -1,8 +1,4 @@
-import {
-  getPermissions,
-  modMenu,
-  type ModMenuState,
-} from "../../messages/modMenu.mjs"
+import { modMenu, type ModMenuState } from "../../messages/modMenu.mjs"
 import { contextMenuCommand } from "../../models/contextMenuCommand.mjs"
 import { tryFetchMember } from "../../util/discord.mjs"
 import { ApplicationCommandType, PermissionFlagsBits } from "discord.js"
@@ -12,7 +8,7 @@ export const ModUserContextCommand = contextMenuCommand({
   type: ApplicationCommandType.User,
   defaultMemberPermissions: PermissionFlagsBits.ModerateMembers,
   dmPermission: false,
-  async handle(interaction, targetUser) {
+  async handle(interaction, target) {
     if (!interaction.inCachedGuild()) {
       return
     }
@@ -21,19 +17,17 @@ export const ModUserContextCommand = contextMenuCommand({
 
     const state: ModMenuState = {
       guild,
-      targetUser,
+      target,
       dm: false,
-      staffMember: interaction.member,
+      staff: interaction.member,
       action: "restrain",
-      permissions: await getPermissions(guild, targetUser),
       timestamp: interaction.createdAt,
       deleteMessageSeconds: 0,
     }
 
-    const member = await tryFetchMember(guild, targetUser)
+    const member = await tryFetchMember(guild, target)
     if (member) {
-      state.targetMember = member
-      state.permissions = await getPermissions(guild, targetUser, member)
+      state.target = member
     }
 
     await interaction.reply(await modMenu(state))

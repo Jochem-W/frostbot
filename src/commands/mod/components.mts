@@ -24,6 +24,7 @@ import {
   DiscordAPIError,
   Message,
   RESTJSONErrorCodes,
+  User,
 } from "discord.js"
 import { Duration } from "luxon"
 
@@ -49,22 +50,20 @@ export const openModMenu = staticComponent({
       return
     }
 
-    const targetUser = await interaction.client.users.fetch(userId)
+    const target = await interaction.client.users.fetch(userId)
     const state: ModMenuState = {
       guild,
       action: "restrain",
       dm: false,
       timestamp: createdAt,
-      targetUser,
-      permissions: await getPermissions(guild, targetUser),
-      staffMember: member,
+      target,
+      staff: member,
       deleteMessageSeconds: 0,
     }
 
-    const targetMember = await tryFetchMember(guild, targetUser)
+    const targetMember = await tryFetchMember(guild, target)
     if (targetMember) {
-      state.targetMember = targetMember
-      state.permissions = await getPermissions(guild, targetUser, targetMember)
+      state.target = targetMember
     }
 
     await interaction.reply(await modMenu(state))
@@ -112,18 +111,18 @@ export const setReason = staticComponent({
 })
 
 async function tryDm(state: ModMenuState): Promise<DmStatus> {
-  const { targetMember, dm } = state
+  const { target, dm } = state
   if (dm === false) {
     return { success: true }
   }
 
-  if (!targetMember) {
+  if (target instanceof User) {
     return { success: false, error: "not_in_server" }
   }
 
   let message
   try {
-    message = await targetMember.send(modMenuDm(state))
+    message = await target.send(modMenuDm(state))
   } catch (e) {
     if (
       e instanceof DiscordAPIError &&
@@ -140,8 +139,7 @@ async function tryDm(state: ModMenuState): Promise<DmStatus> {
 
 async function tryAction({
   guild,
-  targetUser,
-  targetMember,
+  target,
   action,
   timeout,
   deleteMessageSeconds,
@@ -149,11 +147,11 @@ async function tryAction({
   try {
     switch (action) {
       case "kick":
-        if (!targetMember) {
+        if (target instanceof User) {
           return { success: false, error: "not_in_server" }
         }
 
-        await targetMember.kick()
+        await target.kick()
         break
       case "warn":
         break
@@ -162,35 +160,36 @@ async function tryAction({
           return { success: false, error: "timeout_duration" }
         }
 
-        if (!targetMember) {
+        if (target instanceof User) {
           return { success: false, error: "not_in_server" }
         }
 
-        await targetMember.timeout(timeout)
+        await target.timeout(timeout)
         break
       case "ban":
-        await guild.bans.create(targetUser, {
+        await guild.bans.create(target, {
           deleteMessageSeconds: deleteMessageSeconds ?? 0,
         })
         break
       case "note":
         break
       case "restrain":
-        if (!targetMember) {
+        if (target instanceof User) {
           return { success: false, error: "not_in_server" }
         }
 
-        await targetMember.timeout(restrainDuration)
+        await target.timeout(restrainDuration)
         break
       case "unban":
-        await guild.bans.remove(targetUser)
+        // TODO: check member
+        await guild.bans.remove(target)
         return { success: true }
       case "untimeout":
-        if (!targetMember) {
+        if (target instanceof User) {
           return { success: false, error: "not_in_server" }
         }
 
-        await targetMember.timeout(null)
+        await target.timeout(null)
         return { success: true }
       default:
         return { success: false, error: "unhandled" }
@@ -205,11 +204,11 @@ async function tryAction({
 async function tryInsert({
   state: {
     guild,
-    targetUser,
+    target,
     action,
     body,
     dm,
-    staffMember,
+    staff,
     timeout,
     timestamp,
     deleteMessageSeconds,
@@ -228,11 +227,11 @@ async function tryInsert({
       .values([
         {
           guildId: guild.id,
-          userId: targetUser.id,
+          userId: target.id,
           action,
           body: body ?? null,
           dm,
-          staffId: staffMember.id,
+          staffId: staff.id,
           timeout: timeout ?? null,
           timestamp,
           dmSuccess: dmStatus.success,
@@ -284,8 +283,9 @@ export const confirmAction = staticComponent({
     }
 
     const state = await modMenuState(interaction)
-    const { action, permissions } = state
+    const { guild, target, action } = state
 
+    const permissions = await getPermissions(guild, target)
     if (!permissions[action]) {
       await interaction.update(
         modMenuSuccess({
