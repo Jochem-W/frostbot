@@ -35,7 +35,9 @@ export const LogBans = handler({
 
     const auditLog = await getAuditLogEntry(ban)
     if (!auditLog.executorId) {
-      throw new Error() // TODO
+      throw new Error(
+        `The audit log for the ban of ${ban.user.id} doesn't have an executor`,
+      )
     }
 
     if (auditLog.executorId === ban.client.user.id) {
@@ -57,7 +59,7 @@ export const LogBans = handler({
       .returning()
 
     if (!entry) {
-      throw new Error() // TODO
+      throw new Error(`Couldn't create a log for the ban of ${ban.user.id}`)
     }
 
     const channel = await fetchChannel(

@@ -181,7 +181,6 @@ async function tryAction({
         await target.timeout(restrainDuration)
         break
       case "unban":
-        // TODO: check member
         await guild.bans.remove(target)
         return { success: true }
       case "untimeout":

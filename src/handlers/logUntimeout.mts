@@ -51,15 +51,19 @@ export const LogUntimeout = handler({
 
     const auditLog = await getAuditLogEntry(newMember)
     if (!auditLog) {
-      if (oldMember.partial) {
-        return
+      if (!oldMember.partial) {
+        throw new Error(
+          `Couldn't find an audit log entry for the untimeout of ${newMember.id}`,
+        )
       }
 
-      throw new Error() // TODO
+      return
     }
 
     if (!auditLog.executorId) {
-      throw new Error() // TODO
+      throw new Error(
+        `The audit log for the untimeout of ${newMember.id} doesn't have an executor`,
+      )
     }
 
     if (auditLog.executorId === newMember.client.user.id) {
@@ -72,7 +76,9 @@ export const LogUntimeout = handler({
     )
 
     if (!change || !change.old) {
-      throw new Error() // TODO
+      throw new Error(
+        `The audit log for the untimeout of ${newMember.id} doesn't contain a change in timeout duration`,
+      )
     }
 
     const [entry] = await Drizzle.insert(actionsTable)
@@ -91,7 +97,9 @@ export const LogUntimeout = handler({
       .returning()
 
     if (!entry) {
-      throw new Error() // TODO
+      throw new Error(
+        `Couldn't create a log for the untimeout of ${newMember.id}`,
+      )
     }
 
     const channel = await fetchChannel(

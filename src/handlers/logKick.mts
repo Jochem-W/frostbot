@@ -42,7 +42,9 @@ export const LogKick = handler({
     }
 
     if (!auditLog.executorId) {
-      throw new Error() // TODO
+      throw new Error(
+        `The audit log for the kick of ${member.id} doesn't have an executor`,
+      )
     }
 
     if (auditLog.executorId === member.client.user.id) {
@@ -64,7 +66,7 @@ export const LogKick = handler({
       .returning()
 
     if (!entry) {
-      throw new Error() // TODO
+      throw new Error(`Couldn't create a log for the kick of ${member.id}`)
     }
 
     const channel = await fetchChannel(
