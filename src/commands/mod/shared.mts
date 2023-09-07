@@ -1,13 +1,14 @@
+import { Drizzle } from "../../clients.mjs"
 import { ModMenuState } from "../../messages/modMenu.mjs"
+import { modMenuDm } from "../../messages/modMenuDm.mjs"
 import { Colours } from "../../models/colours.mjs"
 import { actionsTable, insertActionsSchema } from "../../schema.mjs"
 import { tryFetchMember } from "../../util/discord.mjs"
-import {
-  actionDropdown,
-  toggleDm,
-  timeoutDuration,
-  messageDeleteDropdown,
-} from "./components.mjs"
+import { logError } from "../../util/error.mjs"
+import { actionDropdown } from "./components/actionDropdown.mjs"
+import { messageDeleteDropdown } from "./components/messageDeleteDropdown.mjs"
+import { timeoutDuration } from "./components/timeoutDuration.mjs"
+import { toggleDm } from "./components/toggleDm.mjs"
 import {
   ButtonComponent,
   ButtonStyle,
@@ -21,6 +22,7 @@ import {
   StringSelectMenuComponent,
   User,
   type SelectMenuComponentOptionData,
+  Message,
 } from "discord.js"
 import { Duration } from "luxon"
 
@@ -280,3 +282,171 @@ export function getColour(action: ModMenuState["action"]) {
       return Colours.red[300]
   }
 }
+
+export async function tryDm(state: ModMenuState): Promise<DmStatus> {
+  const { target, dm } = state
+  if (dm === false) {
+    return { success: true }
+  }
+
+  if (target instanceof User) {
+    return { success: false, error: "not_in_server" }
+  }
+
+  let message
+  try {
+    message = await target.send(modMenuDm(state))
+  } catch (e) {
+    if (
+      e instanceof DiscordAPIError &&
+      e.code === RESTJSONErrorCodes.CannotSendMessagesToThisUser
+    ) {
+      return { success: false, error: "cannot_send" }
+    }
+
+    return { success: false, error: "unknown" }
+  }
+
+  return { success: true, message }
+}
+
+const restrainDuration = Duration.fromObject({
+  days: 28,
+  minutes: -1,
+}).toMillis()
+
+export async function tryAction({
+  guild,
+  target,
+  action,
+  timeout,
+  deleteMessageSeconds,
+}: ModMenuState): Promise<ActionStatus> {
+  try {
+    switch (action) {
+      case "kick":
+        if (target instanceof User) {
+          return { success: false, error: "not_in_server" }
+        }
+
+        await target.kick()
+        break
+      case "warn":
+        break
+      case "timeout":
+        if (!timeout) {
+          return { success: false, error: "timeout_duration" }
+        }
+
+        if (target instanceof User) {
+          return { success: false, error: "not_in_server" }
+        }
+
+        await target.timeout(timeout)
+        break
+      case "ban":
+        await guild.bans.create(target, {
+          deleteMessageSeconds: deleteMessageSeconds ?? 0,
+        })
+        break
+      case "note":
+        break
+      case "restrain":
+        if (target instanceof User) {
+          return { success: false, error: "not_in_server" }
+        }
+
+        await target.timeout(restrainDuration)
+        break
+      case "unban":
+        await guild.bans.remove(target)
+        return { success: true }
+      case "untimeout":
+        if (target instanceof User) {
+          return { success: false, error: "not_in_server" }
+        }
+
+        await target.timeout(null)
+        return { success: true }
+      default:
+        return { success: false, error: "unhandled" }
+    }
+  } catch (e) {
+    return { success: false, error: "unknown" }
+  }
+
+  return { success: true }
+}
+
+export async function tryInsert({
+  state: {
+    guild,
+    target,
+    action,
+    body,
+    dm,
+    staff,
+    timeout,
+    timestamp,
+    deleteMessageSeconds,
+    timedOutUntil,
+  },
+  dmStatus,
+  actionStatus,
+}: {
+  state: ModMenuState
+  dmStatus: DmStatus
+  actionStatus: ActionStatus
+}): Promise<InsertStatus> {
+  let data
+  try {
+    ;[data] = await Drizzle.insert(actionsTable)
+      .values([
+        {
+          guildId: guild.id,
+          userId: target.id,
+          action,
+          body: body ?? null,
+          dm,
+          staffId: staff.id,
+          timeout: timeout ?? null,
+          timestamp,
+          dmSuccess: dmStatus.success,
+          actionSucess: actionStatus.success,
+          deleteMessageSeconds: deleteMessageSeconds ?? null,
+          timedOutUntil: action === "untimeout" ? timedOutUntil ?? null : null,
+        },
+      ])
+      .returning({ id: actionsTable.id })
+  } catch (error) {
+    await logError(guild.client, error)
+    return { success: false, error }
+  }
+
+  if (data === undefined) {
+    return { success: false, error: undefined }
+  }
+
+  return { success: true, id: data.id }
+}
+
+export type DmStatus =
+  | {
+      success: false
+      error: "not_in_server" | "cannot_send" | "unknown" | "action_failed"
+    }
+  | { success: true; message?: Message<false> }
+
+export type ActionStatus =
+  | {
+      success: false
+      error: "not_in_server" | "timeout_duration" | "unhandled" | "unknown"
+    }
+  | { success: true; message?: Message<false> }
+
+export type InsertStatus =
+  | {
+      success: true
+      id: number
+    }
+  | { success: false; error: unknown }

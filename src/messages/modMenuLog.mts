@@ -1,12 +1,10 @@
-import {
-  openModMenu,
-  type DmStatus,
-  type ActionStatus,
-  type InsertStatus,
-} from "../commands/mod/components.mjs"
+import { openModMenu } from "../commands/mod/components/openModMenu.mjs"
 import {
   getColour,
   formatDurationAsSingleUnit,
+  ActionStatus,
+  DmStatus,
+  InsertStatus,
 } from "../commands/mod/shared.mjs"
 import { actionsTable } from "../schema.mjs"
 import { tryFetchMember } from "../util/discord.mjs"

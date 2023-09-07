@@ -1,8 +1,8 @@
-import type {
+import {
   DmStatus,
   ActionStatus,
   InsertStatus,
-} from "../commands/mod/components.mjs"
+} from "../commands/mod/shared.mjs"
 import { Colours } from "../models/colours.mjs"
 import { type ModMenuState } from "./modMenu.mjs"
 import { EmbedBuilder, userMention } from "discord.js"

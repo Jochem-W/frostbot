@@ -1,12 +1,10 @@
 import { Drizzle } from "../clients.mjs"
-import {
-  setReason,
-  toggleDm,
-  confirmAction,
-  actionDropdown,
-  timeoutDuration,
-  messageDeleteDropdown,
-} from "../commands/mod/components.mjs"
+import { actionDropdown } from "../commands/mod/components/actionDropdown.mjs"
+import { confirmAction } from "../commands/mod/components/confirmAction.mjs"
+import { messageDeleteDropdown } from "../commands/mod/components/messageDeleteDropdown.mjs"
+import { setReason } from "../commands/mod/components/setReason.mjs"
+import { timeoutDuration } from "../commands/mod/components/timeoutDuration.mjs"
+import { toggleDm } from "../commands/mod/components/toggleDm.mjs"
 import {
   ModMenuPermissions,
   getPermissions,
