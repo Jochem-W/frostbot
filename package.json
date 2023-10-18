@@ -27,7 +27,7 @@
     "@trivago/prettier-plugin-sort-imports": "^4.2.0",
     "@tsconfig/node20": "^20.1.2",
     "@tsconfig/strictest": "^2.0.2",
-    "@types/node": "^20.5.9",
+    "@types/node": "^20.8.7",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
     "drizzle-kit": "^0.19.13",
