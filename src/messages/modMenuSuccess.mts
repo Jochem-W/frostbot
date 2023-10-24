@@ -28,7 +28,7 @@ export function modMenuSuccess(data: Data) {
         new EmbedBuilder()
           .setTitle("Failure!")
           .setDescription(
-            `You/I do not have the required permissions to perform a ${action} on ${userMention(
+            `You do not have the required permissions to perform a ${action} on ${userMention(
               target.id,
             )}, or the user is not in the server.`,
           )
