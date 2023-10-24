@@ -28,5 +28,9 @@ export async function uploadAttachment(
 
   await new Upload(options).done()
 
-  return { key, url: new URL(key, Config.s3.bucketUrl) }
+  return { key, url: fileURL(key) }
+}
+
+export function fileURL(key: string) {
+  return new URL(key, Config.s3.bucketUrl)
 }

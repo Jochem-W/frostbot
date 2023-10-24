@@ -1,11 +1,13 @@
-import { Drizzle } from "../clients.mjs"
 import {
   getColour,
   formatDurationAsSingleUnit,
 } from "../commands/mod/shared.mjs"
 import { Colours } from "../models/colours.mjs"
+import { Config } from "../models/config.mjs"
 import { actionsTable } from "../schema.mjs"
+import { actionsWithImages } from "../util/db.mjs"
 import { tryFetchMember } from "../util/discord.mjs"
+import { fileURL } from "../util/s3.mjs"
 import {
   bold,
   Client,
@@ -19,10 +21,10 @@ import { eq, asc } from "drizzle-orm"
 import { Duration } from "luxon"
 
 export async function modHistory(user: User, guild: Guild) {
-  const history = await Drizzle.select()
-    .from(actionsTable)
-    .where(eq(actionsTable.userId, user.id))
-    .orderBy(asc(actionsTable.timestamp))
+  const history = await actionsWithImages({
+    where: eq(actionsTable.userId, user.id),
+    orderBy: asc(actionsTable.timestamp),
+  })
 
   const member = await tryFetchMember(guild, user)
 
@@ -54,19 +56,34 @@ export async function modHistory(user: User, guild: Guild) {
       break
   }
 
-  const firstEmbed = new EmbedBuilder()
-    .setTitle(user.displayName)
-    .setThumbnail(user.displayAvatarURL())
-    .setDescription(description)
-    .setFooter({ text: user.id })
-    .setColor(Colours.cyan[400])
+  let embeds = [
+    new EmbedBuilder()
+      .setTitle(user.displayName)
+      .setThumbnail(user.displayAvatarURL())
+      .setDescription(description)
+      .setFooter({ text: user.id })
+      .setColor(Colours.cyan[400]),
+  ]
 
   if (history.length === 0) {
-    return [{ embeds: [firstEmbed], ephemeral: true }]
+    return [{ embeds, ephemeral: true }]
   }
 
-  const actionEmbeds = []
+  const replies = []
   for (const entry of history) {
+    const actionEmbeds = entry.images.map((image) =>
+      new EmbedBuilder()
+        .setImage(fileURL(image.key).toString())
+        .setColor(getColour(entry.action))
+        .setURL(new URL(entry.id.toString(), Config.url.external).toString()),
+    )
+
+    let mainEmbed = actionEmbeds[0]
+    if (!mainEmbed) {
+      mainEmbed = new EmbedBuilder()
+      actionEmbeds.push(mainEmbed)
+    }
+
     let footer = ""
     if (entry.dm && entry.dmSuccess) {
       footer += "Sent via DM, "
@@ -83,7 +100,7 @@ export async function modHistory(user: User, guild: Guild) {
 
     footer += `ID: ${entry.id}`
 
-    const embed = new EmbedBuilder()
+    mainEmbed
       .setAuthor(await formatActionAsAuthor(user.client, entry))
       .setDescription(entry.body)
       .setFooter({ text: footer })
@@ -91,22 +108,18 @@ export async function modHistory(user: User, guild: Guild) {
       .setColor(getColour(entry.action))
 
     if (notice.length > 0) {
-      embed.setFields({ name: "⚠️ Notice", value: notice.join("\n") })
+      mainEmbed.setFields({ name: "⚠️ Notice", value: notice.join("\n") })
     }
 
-    actionEmbeds.push(embed)
+    if (embeds.length + actionEmbeds.length > 10) {
+      replies.push({ embeds, ephemeral: true })
+      embeds = []
+    }
+
+    embeds.push(...actionEmbeds)
   }
 
-  const replies = []
-  const firstReply = {
-    embeds: [firstEmbed, ...actionEmbeds.splice(0, 9)],
-    ephemeral: true,
-  }
-
-  replies.push(firstReply)
-  while (actionEmbeds.length > 0) {
-    replies.push({ embeds: actionEmbeds.splice(0, 10), ephemeral: true })
-  }
+  replies.push({ embeds, ephemeral: true })
 
   return replies
 }
