@@ -12,7 +12,7 @@ async function getAuditLogEntry(ban: GuildBan) {
     limit: 10,
   })
 
-  for (const [, entry] of auditLogs.entries) {
+  for (const entry of auditLogs.entries.values()) {
     if (entry.target?.id === ban.user.id) {
       return entry
     }

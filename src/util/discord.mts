@@ -8,7 +8,6 @@ import {
   Guild,
   type FetchMemberOptions,
   type UserResolvable,
-  type Interaction,
   DiscordAPIError,
   RESTJSONErrorCodes,
 } from "discord.js"
@@ -43,19 +42,6 @@ export async function fetchChannel<T extends ChannelType>(
     : Extract<Channel, { type: T }>
 }
 
-export async function tryFetchChannel<T extends ChannelType>(
-  client: Client<true>,
-  id: Snowflake,
-  type: T | T[],
-  options?: FetchChannelOptions,
-) {
-  try {
-    return await fetchChannel(client, id, type, options)
-  } catch (e) {
-    return null
-  }
-}
-
 export async function tryFetchMember(
   guild: Guild,
   options: UserResolvable | FetchMemberOptions,
@@ -72,16 +58,4 @@ export async function tryFetchMember(
 
     return null
   }
-}
-
-export async function interactionGuild(interaction: Interaction) {
-  if (!interaction.inGuild()) {
-    return null
-  }
-
-  if (interaction.guild) {
-    return interaction.guild
-  }
-
-  return await interaction.client.guilds.fetch(interaction.guildId)
 }

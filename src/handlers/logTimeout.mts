@@ -18,7 +18,7 @@ async function getAuditLogEntry(member: GuildMember) {
     limit: 10,
   })
 
-  for (const [, entry] of auditLogs.entries) {
+  for (const entry of auditLogs.entries.values()) {
     if (
       entry.target?.id === member.id &&
       entry.changes.some(

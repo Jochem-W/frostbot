@@ -61,7 +61,7 @@ export const ActSubcommand = subcommand({
       new SlashCommandBooleanOption()
         .setName("dm")
         .setDescription(
-          "Send a DM to the user, always false for note, always true for warn",
+          "Send a DM to the user; always false for note, always true for warn",
         ),
     ),
   ],

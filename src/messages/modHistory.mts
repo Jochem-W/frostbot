@@ -37,7 +37,7 @@ export async function modHistory(user: User, guild: Guild) {
       TimestampStyles.RelativeTime,
     )}.`
   } else {
-    description += ` There are currently not in ${guild.name}.`
+    description += ` They are currently not in ${guild.name}.`
   }
 
   switch (history.length) {
