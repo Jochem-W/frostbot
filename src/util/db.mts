@@ -2,6 +2,13 @@ import { Drizzle } from "../clients.mjs"
 import { actionsTable, attachmentsTable, usersTable } from "../schema.mjs"
 import { sql, desc, asc, eq, SQL } from "drizzle-orm"
 
+export type ActionWithImages = typeof actionsTable.$inferSelect & {
+  images: (typeof attachmentsTable.$inferSelect)[]
+}
+export type ActionWithOptionalImages = Omit<ActionWithImages, "images"> & {
+  images?: ActionWithImages["images"]
+}
+
 export const position = sql<string>`row_number() OVER (ORDER BY ${desc(
   usersTable.xp,
 )}, ${asc(usersTable.id)})`.as("position")
@@ -26,12 +33,7 @@ export async function actionsWithImages({
     .orderBy(orderBy)
     .leftJoin(attachmentsTable, eq(actionsTable.id, attachmentsTable.actionId))
 
-  const set = new Map<
-    number,
-    typeof actionsTable.$inferSelect & {
-      images: (typeof attachmentsTable.$inferSelect)[]
-    }
-  >()
+  const set = new Map<number, ActionWithImages>()
 
   for (const entry of actions) {
     if (!set.has(entry.actions.id)) {
@@ -50,4 +52,24 @@ export async function actionsWithImages({
   }
 
   return [...set.values()]
+}
+
+export async function actionWithImages(where: SQL<unknown>) {
+  const action = await Drizzle.select()
+    .from(actionsTable)
+    .where(where)
+    .leftJoin(attachmentsTable, eq(actionsTable.id, attachmentsTable.actionId))
+
+  if (!action[0]) {
+    throw new Error() // TODO
+  }
+
+  const data: ActionWithImages = { ...action[0].actions, images: [] }
+  for (const entry of action) {
+    if (entry.attachments) {
+      data.images.push(entry.attachments)
+    }
+  }
+
+  return data
 }

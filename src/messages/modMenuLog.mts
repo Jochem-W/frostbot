@@ -6,8 +6,11 @@ import {
   DmStatus,
   InsertStatus,
 } from "../commands/mod/shared.mjs"
-import { actionsTable } from "../schema.mjs"
+import { Config } from "../models/config.mjs"
+import { actionsTable, attachmentsTable } from "../schema.mjs"
+import { ActionWithOptionalImages, actionWithImages } from "../util/db.mjs"
 import { tryFetchMember } from "../util/discord.mjs"
+import { fileURL } from "../util/s3.mjs"
 import { type ModMenuState } from "./modMenu.mjs"
 import {
   ActionRowBuilder,
@@ -22,6 +25,7 @@ import {
   userMention,
   User,
 } from "discord.js"
+import { eq } from "drizzle-orm"
 import { DateTime, Duration } from "luxon"
 
 export function modMenuLog({
@@ -29,11 +33,13 @@ export function modMenuLog({
   actionStatus,
   insertStatus,
   state,
+  images,
 }: {
   dmStatus: DmStatus
   actionStatus: ActionStatus
   insertStatus: InsertStatus
   state: Omit<ModMenuState, "permissions" | "guild">
+  images?: (typeof attachmentsTable.$inferSelect)[]
 }) {
   const {
     staff,
@@ -51,7 +57,21 @@ export function modMenuLog({
   const targetUser = target instanceof GuildMember ? target.user : target
   const targetMember = target instanceof User ? null : target
 
-  const embed = new EmbedBuilder()
+  const embeds =
+    images?.map((image) =>
+      new EmbedBuilder()
+        .setImage(fileURL(image.key).toString())
+        .setURL(Config.url.external)
+        .setColor(getColour(state.action)),
+    ) ?? []
+
+  let mainEmbed = embeds[0]
+  if (!mainEmbed) {
+    mainEmbed = new EmbedBuilder()
+    embeds.push(mainEmbed)
+  }
+
+  mainEmbed
     .setAuthor({
       name: formatTitle(state),
       iconURL: staffUser.displayAvatarURL(),
@@ -70,11 +90,11 @@ export function modMenuLog({
   }
 
   if (footer) {
-    embed.setFooter({ text: footer })
+    mainEmbed.setFooter({ text: footer })
   }
 
   if (body) {
-    embed.addFields({
+    mainEmbed.addFields({
       name: action === "note" ? "🗒️ Body" : "❔ Reason",
       value: body,
     })
@@ -83,7 +103,7 @@ export function modMenuLog({
   if (action === "ban" && deleteMessageSeconds) {
     const duration = Duration.fromObject({ seconds: deleteMessageSeconds })
     const since = DateTime.fromJSDate(timestamp).minus(duration).toJSDate()
-    embed.addFields({
+    mainEmbed.addFields({
       name: "🗑️ Messages deleted",
       value: `Last ${shiftDuration(duration).toHuman()} (since ${time(
         since,
@@ -97,7 +117,7 @@ export function modMenuLog({
     timeout &&
     targetMember?.communicationDisabledUntil
   ) {
-    embed.addFields({
+    mainEmbed.addFields({
       name: "🕑 Will be unmuted",
       value: `${time(
         targetMember.communicationDisabledUntil,
@@ -107,7 +127,7 @@ export function modMenuLog({
   }
 
   if (action === "untimeout" && timedOutUntil) {
-    embed.addFields({
+    mainEmbed.addFields({
       name: "🕑 Timeout amount skipped",
       value: formatDurationAsSingleUnit(
         DateTime.fromJSDate(timedOutUntil).diffNow().shiftToAll(),
@@ -115,7 +135,7 @@ export function modMenuLog({
     })
   }
 
-  embed.addFields(
+  mainEmbed.addFields(
     { name: "👤 User", value: userMention(targetUser.id), inline: true },
     { name: "#️⃣ User ID", value: targetUser.id, inline: true },
   )
@@ -175,7 +195,7 @@ export function modMenuLog({
   }
 
   if (notice.length > 0) {
-    embed.addFields({ name: "⚠️ Notice", value: notice.join("\n") })
+    mainEmbed.addFields({ name: "⚠️ Notice", value: notice.join("\n") })
   }
 
   const components = []
@@ -191,22 +211,29 @@ export function modMenuLog({
   }
 
   return {
-    embeds: [embed],
+    embeds,
     components,
   }
 }
 
 export async function modMenuLogFromDb(
   client: Client<true>,
-  data: typeof actionsTable.$inferSelect,
+  options: typeof actionsTable.$inferSelect.id | ActionWithOptionalImages,
 ) {
+  let data
+  if (typeof options === "number") {
+    data = await actionWithImages(eq(actionsTable.id, options))
+  } else {
+    data = options
+  }
+
   const guild = await client.guilds.fetch(data.guildId)
   const targetUser = await client.users.fetch(data.userId)
   const targetMember = await tryFetchMember(guild, targetUser)
   const staffUser = await client.users.fetch(data.staffId)
   const staffMember = await tryFetchMember(guild, staffUser)
 
-  const options: Parameters<typeof modMenuLog>[0] = {
+  const params: Parameters<typeof modMenuLog>[0] = {
     dmStatus: data.dmSuccess
       ? { success: true }
       : { success: false, error: "unknown" },
@@ -223,27 +250,31 @@ export async function modMenuLogFromDb(
     },
   }
 
+  if (data.images) {
+    params.images = data.images
+  }
+
   if (data.deleteMessageSeconds !== null) {
-    options.state.deleteMessageSeconds = data.deleteMessageSeconds
+    params.state.deleteMessageSeconds = data.deleteMessageSeconds
   }
 
   if (data.body) {
-    options.state.body = data.body
+    params.state.body = data.body
   }
 
   if (data.timeout) {
-    options.state.timeout = data.timeout
+    params.state.timeout = data.timeout
   }
 
   if (targetMember) {
-    options.state.target = targetMember
+    params.state.target = targetMember
   }
 
   if (data.timedOutUntil) {
-    options.state.timedOutUntil = data.timedOutUntil
+    params.state.timedOutUntil = data.timedOutUntil
   }
 
-  return modMenuLog(options)
+  return modMenuLog(params)
 }
 
 function formatTitle({
