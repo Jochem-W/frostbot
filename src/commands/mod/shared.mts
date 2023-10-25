@@ -122,7 +122,10 @@ export async function getPermissions(
 
   permissions.warn = true
 
-  if (staff.roles.highest.comparePositionTo(target.roles.highest) <= 0) {
+  if (
+    staff.roles.highest.comparePositionTo(target.roles.highest) <= 0 &&
+    guild.ownerId !== staff.id
+  ) {
     return permissions
   }
 
