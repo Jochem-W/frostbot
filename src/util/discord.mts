@@ -10,7 +10,9 @@ import {
   type UserResolvable,
   DiscordAPIError,
   RESTJSONErrorCodes,
+  Attachment,
 } from "discord.js"
+import { MIMEType } from "util"
 
 export async function fetchChannel<T extends ChannelType>(
   client: Client<true>,
@@ -58,4 +60,14 @@ export async function tryFetchMember(
 
     return null
   }
+}
+
+export function attachmentsAreImages(
+  attachments: Attachment[],
+): attachments is (Attachment & { contentType: `image/${string}` })[] {
+  return !attachments.find(
+    (attachment) =>
+      !attachment.contentType ||
+      new MIMEType(attachment.contentType).type !== "image",
+  )
 }

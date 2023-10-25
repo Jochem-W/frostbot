@@ -2,6 +2,7 @@ import {
   DmStatus,
   ActionStatus,
   InsertStatus,
+  InsertImagesStatus,
 } from "../commands/mod/shared.mjs"
 import { Colours } from "../models/colours.mjs"
 import { type ModMenuState } from "./modMenu.mjs"
@@ -16,6 +17,7 @@ type Data =
       dmStatus: DmStatus
       actionStatus: ActionStatus
       insertStatus: InsertStatus
+      insertImagesStatus?: InsertImagesStatus
     }
 
 export function modMenuSuccess(data: Data) {
@@ -45,6 +47,7 @@ export function modMenuSuccess(data: Data) {
     actionStatus,
     dmStatus,
     insertStatus,
+    insertImagesStatus,
     state: { guild },
   } = data
   if (actionStatus.success) {
@@ -110,6 +113,14 @@ export function modMenuSuccess(data: Data) {
       name: "❌ Database insertion failed",
       value:
         "Due to an unexpected error, the moderation log couldn't be stored in the database.",
+    })
+  }
+
+  if (!insertImagesStatus?.success) {
+    embed.addFields({
+      name: "❌ Image insertion failed",
+      value:
+        "Due to an unexpected error, some images couldn't be linked to the action log in the database.",
     })
   }
 

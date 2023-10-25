@@ -5,10 +5,23 @@ import { modMenuSuccess } from "../../../messages/modMenuSuccess.mjs"
 import { Config } from "../../../models/config.mjs"
 import { slashOption, subcommand } from "../../../models/slashCommand.mjs"
 import { actionLogsTable, insertActionsSchema } from "../../../schema.mjs"
-import { fetchChannel, tryFetchMember } from "../../../util/discord.mjs"
-import { getPermissions, tryAction, tryDm, tryInsert } from "../shared.mjs"
 import {
+  attachmentsAreImages,
+  fetchChannel,
+  tryFetchMember,
+} from "../../../util/discord.mjs"
+import { uploadAttachments } from "../../../util/s3.mjs"
+import {
+  getPermissions,
+  tryAction,
+  tryDm,
+  tryInsert,
+  tryInsertImages,
+} from "../shared.mjs"
+import {
+  Attachment,
   ChannelType,
+  SlashCommandAttachmentOption,
   SlashCommandBooleanOption,
   SlashCommandStringOption,
   SlashCommandUserOption,
@@ -64,10 +77,41 @@ export const ActSubcommand = subcommand({
           "Send a DM to the user; always false for note, always true for warn",
         ),
     ),
+    slashOption(
+      false,
+      new SlashCommandAttachmentOption()
+        .setName("image1")
+        .setDescription("Image to add to the log"),
+    ),
+    slashOption(
+      false,
+      new SlashCommandAttachmentOption()
+        .setName("image2")
+        .setDescription("Image to add to the log"),
+    ),
+    slashOption(
+      false,
+      new SlashCommandAttachmentOption()
+        .setName("image3")
+        .setDescription("Image to add to the log"),
+    ),
+    slashOption(
+      false,
+      new SlashCommandAttachmentOption()
+        .setName("image4")
+        .setDescription("Image to add to the log"),
+    ),
   ],
-  async handle(interaction, targetUser, rawAction, body, dm) {
+  async handle(interaction, targetUser, rawAction, body, dm, ...attachments) {
     if (!interaction.inCachedGuild()) {
       return
+    }
+
+    const filteredAttachments = attachments.filter(
+      (attachment): attachment is Attachment => attachment !== null,
+    )
+    if (!attachmentsAreImages(filteredAttachments)) {
+      throw new Error("Some of the attachments aren't valid images")
     }
 
     const [actionName, actionExtra] = rawAction.split(":")
@@ -116,6 +160,16 @@ export const ActSubcommand = subcommand({
       return
     }
 
+    let fulfilled
+    if (filteredAttachments.length > 0) {
+      await interaction.deferReply()
+      let rejected
+      ;({ fulfilled, rejected } = await uploadAttachments(filteredAttachments))
+      if (rejected.length > 0) {
+        throw new Error(JSON.stringify(rejected))
+      }
+    }
+
     let dmStatus
     let actionStatus
     if (action === "ban" || action === "kick") {
@@ -131,6 +185,14 @@ export const ActSubcommand = subcommand({
     }
 
     const insertStatus = await tryInsert({ state, actionStatus, dmStatus })
+    let insertImagesStatus
+    if (insertStatus.success && fulfilled) {
+      insertImagesStatus = await tryInsertImages(
+        interaction.client,
+        insertStatus.id,
+        fulfilled.map((entry) => entry.value),
+      )
+    }
 
     await interaction.reply(
       modMenuSuccess({
@@ -138,6 +200,7 @@ export const ActSubcommand = subcommand({
         dmStatus,
         actionStatus,
         insertStatus,
+        insertImagesStatus,
       }),
     )
 
@@ -147,9 +210,18 @@ export const ActSubcommand = subcommand({
       ChannelType.GuildText,
     )
 
-    const message = await channel.send(
-      modMenuLog({ state, dmStatus, actionStatus, insertStatus }),
-    )
+    const params: Parameters<typeof modMenuLog>[0] = {
+      state,
+      dmStatus,
+      actionStatus,
+      insertStatus,
+    }
+
+    if (insertImagesStatus?.success) {
+      params.images = insertImagesStatus.data
+    }
+
+    const message = await channel.send(modMenuLog(params))
     if (insertStatus.success) {
       await Drizzle.insert(actionLogsTable).values({
         messageId: message.id,

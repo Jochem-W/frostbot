@@ -31,6 +31,27 @@ export async function uploadAttachment(
   return { key, url: fileURL(key) }
 }
 
+export async function uploadAttachments(
+  attachments: (Attachment & { contentType: string })[],
+) {
+  const results = await Promise.allSettled(attachments.map(uploadAttachment))
+
+  const rejected = []
+  const fulfilled = []
+  for (const result of results) {
+    switch (result.status) {
+      case "fulfilled":
+        fulfilled.push(result)
+        break
+      case "rejected":
+        rejected.push(result)
+        break
+    }
+  }
+
+  return { fulfilled, rejected }
+}
+
 export function fileURL(key: string) {
   return new URL(key, Config.s3.bucketUrl)
 }

@@ -2,7 +2,11 @@ import { Drizzle } from "../../clients.mjs"
 import { ModMenuState } from "../../messages/modMenu.mjs"
 import { modMenuDm } from "../../messages/modMenuDm.mjs"
 import { Colours } from "../../models/colours.mjs"
-import { actionsTable, insertActionsSchema } from "../../schema.mjs"
+import {
+  actionsTable,
+  attachmentsTable,
+  insertActionsSchema,
+} from "../../schema.mjs"
 import { tryFetchMember } from "../../util/discord.mjs"
 import { logError } from "../../util/error.mjs"
 import { actionDropdown } from "./components/actionDropdown.mjs"
@@ -23,6 +27,7 @@ import {
   User,
   type SelectMenuComponentOptionData,
   Message,
+  Client,
 } from "discord.js"
 import { Duration } from "luxon"
 
@@ -433,6 +438,24 @@ export async function tryInsert({
   return { success: true, id: data.id }
 }
 
+export async function tryInsertImages(
+  client: Client,
+  actionId: typeof actionsTable.$inferSelect.id,
+  images: { key: string }[],
+): Promise<InsertImagesStatus> {
+  let data
+  try {
+    data = await Drizzle.insert(attachmentsTable)
+      .values(images.map(({ key }) => ({ key, actionId })))
+      .returning()
+  } catch (error) {
+    await logError(client, error)
+    return { success: false, error }
+  }
+
+  return { success: true, data }
+}
+
 export type DmStatus =
   | {
       success: false
@@ -451,5 +474,12 @@ export type InsertStatus =
   | {
       success: true
       id: number
+    }
+  | { success: false; error: unknown }
+
+export type InsertImagesStatus =
+  | {
+      success: true
+      data: (typeof attachmentsTable.$inferSelect)[]
     }
   | { success: false; error: unknown }

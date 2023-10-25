@@ -7,7 +7,8 @@ import {
   actionsTable,
   actionLogsTable,
 } from "../../../schema.mjs"
-import { uploadAttachment } from "../../../util/s3.mjs"
+import { attachmentsAreImages } from "../../../util/discord.mjs"
+import { uploadAttachments } from "../../../util/s3.mjs"
 import {
   SlashCommandIntegerOption,
   SlashCommandAttachmentOption,
@@ -15,17 +16,6 @@ import {
   EmbedBuilder,
 } from "discord.js"
 import { sql, eq } from "drizzle-orm"
-import { MIMEType } from "util"
-
-function attachmentsAreImages(
-  attachments: Attachment[],
-): attachments is (Attachment & { contentType: `image/${string}` })[] {
-  return !attachments.find(
-    (attachment) =>
-      !attachment.contentType ||
-      new MIMEType(attachment.contentType).type !== "image",
-  )
-}
 
 export const AttachSubcommand = subcommand({
   name: "attach",
@@ -108,20 +98,7 @@ export const AttachSubcommand = subcommand({
 
     await interaction.deferReply({ ephemeral: true })
 
-    const results = await Promise.allSettled(filtered.map(uploadAttachment))
-
-    const rejected = []
-    const fulfilled = []
-    for (const result of results) {
-      switch (result.status) {
-        case "fulfilled":
-          fulfilled.push(result)
-          break
-        case "rejected":
-          rejected.push(result)
-          break
-      }
-    }
+    const { fulfilled, rejected } = await uploadAttachments(filtered)
 
     await Drizzle.insert(attachmentsTable).values(
       fulfilled.map((result) => ({ actionId: id, key: result.value.key })),
