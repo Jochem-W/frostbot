@@ -1,20 +1,40 @@
 import { Colours } from "../models/colours.mjs"
+import { Config } from "../models/config.mjs"
+import { attachmentsTable } from "../schema.mjs"
+import { fileURL } from "../util/s3.mjs"
 import { type ModMenuState } from "./modMenu.mjs"
 import { EmbedBuilder } from "discord.js"
 
-export function modMenuDm(state: ModMenuState) {
+export function modMenuDm(
+  state: ModMenuState,
+  images?: (typeof attachmentsTable.$inferSelect)[],
+) {
   const { body, timestamp } = state
 
-  const embed = new EmbedBuilder()
+  const embeds =
+    images?.map((image) =>
+      new EmbedBuilder()
+        .setImage(fileURL(image.key).toString())
+        .setURL(Config.url.external)
+        .setColor(Colours.red[500]),
+    ) ?? []
+
+  let mainEmbed = embeds[0]
+  if (!mainEmbed) {
+    mainEmbed = new EmbedBuilder()
+    embeds.push(mainEmbed)
+  }
+
+  mainEmbed
     .setTitle(formatTitle(state))
     .setColor(Colours.red[500])
     .setTimestamp(timestamp)
 
   if (body) {
-    embed.setFields({ name: "Reason", value: body })
+    mainEmbed.setFields({ name: "Reason", value: body })
   }
 
-  return { embeds: [embed] }
+  return { embeds }
 }
 
 function formatTitle({ action, guild }: ModMenuState) {
