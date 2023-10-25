@@ -309,10 +309,9 @@ function actionControls(state: ModMenuState, permissions: ModMenuPermissions) {
   if ((dm || action === "note") && !body) {
     let text = `- Please set a ${action === "note" ? "body" : "reason"}`
     if (action !== "warn" && action !== "note") {
-      text += ", don't send a DM"
+      text += ", or don't send a DM"
     }
 
-    text += ", or choose another option."
     errors.push(text)
   }
 

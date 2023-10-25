@@ -62,7 +62,7 @@ export function modMenuLog({
 
   let footer = ""
   if (insertStatus.success) {
-    footer += insertStatus.id.toString(10)
+    footer += `ID: ${insertStatus.id.toString(10)}`
   }
 
   if (dmStatus.success && dm) {

@@ -15,6 +15,7 @@ import {
   Guild,
   time,
   TimestampStyles,
+  userMention,
   type User,
 } from "discord.js"
 import { eq, asc } from "drizzle-orm"
@@ -28,7 +29,7 @@ export async function modHistory(user: User, guild: Guild) {
 
   const member = await tryFetchMember(guild, user)
 
-  let description = `${user.toString()} created their account ${time(
+  let description = `${userMention(user.id)} created their account ${time(
     user.createdAt,
     TimestampStyles.RelativeTime,
   )}.`
@@ -75,7 +76,7 @@ export async function modHistory(user: User, guild: Guild) {
       new EmbedBuilder()
         .setImage(fileURL(image.key).toString())
         .setColor(getColour(entry.action))
-        .setURL(new URL(entry.id.toString(), Config.url.external).toString()),
+        .setURL(new URL(entry.id.toString(10), Config.url.external).toString()),
     )
 
     let mainEmbed = actionEmbeds[0]
