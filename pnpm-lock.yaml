@@ -25,7 +25,7 @@ dependencies:
     version: 14.13.0(bufferutil@4.0.8)(utf-8-validate@6.0.3)
   drizzle-orm:
     specifier: ^0.28.6
-    version: 0.28.6(postgres@3.4.1)
+    version: 0.28.6(postgres@3.4.2)
   drizzle-zod:
     specifier: ^0.5.1
     version: 0.5.1(drizzle-orm@0.28.6)(zod@3.22.4)
@@ -33,8 +33,8 @@ dependencies:
     specifier: ^3.4.3
     version: 3.4.3
   postgres:
-    specifier: ^3.4.1
-    version: 3.4.1
+    specifier: ^3.4.2
+    version: 3.4.2
   puppeteer:
     specifier: ^21.4.1
     version: 21.4.1(bufferutil@4.0.8)(typescript@5.2.2)(utf-8-validate@6.0.3)
@@ -2256,7 +2256,7 @@ packages:
       - supports-color
     dev: true
 
-  /drizzle-orm@0.28.6(postgres@3.4.1):
+  /drizzle-orm@0.28.6(postgres@3.4.2):
     resolution: {integrity: sha512-yBe+F9htrlYER7uXgDJUQsTHFoIrI5yMm5A0bg0GiZ/kY5jNXTWoEy4KQtg35cE27sw1VbgzoMWHAgCckUUUww==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
@@ -2318,7 +2318,7 @@ packages:
       sqlite3:
         optional: true
     dependencies:
-      postgres: 3.4.1
+      postgres: 3.4.2
     dev: false
 
   /drizzle-zod@0.5.1(drizzle-orm@0.28.6)(zod@3.22.4):
@@ -2327,7 +2327,7 @@ packages:
       drizzle-orm: '>=0.23.13'
       zod: '*'
     dependencies:
-      drizzle-orm: 0.28.6(postgres@3.4.1)
+      drizzle-orm: 0.28.6(postgres@3.4.2)
       zod: 3.22.4
     dev: false
 
@@ -3226,8 +3226,8 @@ packages:
     engines: {node: '>=8.6'}
     dev: true
 
-  /postgres@3.4.1:
-    resolution: {integrity: sha512-Wasjv6WEzrZXbwKByR2RGD7MBfj7VBqco3hYWz8ifzSAp6tb2L6MlmcKFzkmgV1jT7/vKlcSa+lxXZeTdeVMzQ==}
+  /postgres@3.4.2:
+    resolution: {integrity: sha512-0UcCGvDBSaAzLeWwiq+QVmiGfOPTosFb+sxJUUtd+7Pi/ByFPuz6Gq05LbS0sM1ghMWC5atuks3pfl34g0qmFw==}
     engines: {node: '>=12'}
     dev: false
 
