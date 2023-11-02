@@ -19,7 +19,7 @@
     "drizzle-orm": "^0.28.6",
     "drizzle-zod": "^0.5.1",
     "luxon": "^3.4.3",
-    "postgres": "^3.4.1",
+    "postgres": "^3.4.3",
     "puppeteer": "^21.4.1",
     "zod": "^3.22.4"
   },
