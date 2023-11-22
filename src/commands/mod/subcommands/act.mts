@@ -3,7 +3,7 @@ import { ModMenuState } from "../../../messages/modMenu.mjs"
 import { modMenuLog } from "../../../messages/modMenuLog.mjs"
 import { modMenuSuccess } from "../../../messages/modMenuSuccess.mjs"
 import { Config } from "../../../models/config.mjs"
-import { slashOption, subcommand } from "../../../models/slashCommand.mjs"
+import { slashSubcommand } from "../../../models/slashCommand.mjs"
 import { actionLogsTable, insertActionsSchema } from "../../../schema.mjs"
 import {
   attachmentsAreImages,
@@ -18,89 +18,81 @@ import {
   tryInsert,
   tryInsertImages,
 } from "../shared.mjs"
-import {
-  Attachment,
-  ChannelType,
-  SlashCommandAttachmentOption,
-  SlashCommandBooleanOption,
-  SlashCommandStringOption,
-  SlashCommandUserOption,
-} from "discord.js"
+import { Attachment, ChannelType } from "discord.js"
 import { Duration } from "luxon"
 import { z } from "zod"
 
-export const ActSubcommand = subcommand({
+export const ActSubcommand = slashSubcommand({
   name: "act",
   description: "Perform a moderation action without using the moderation menu",
   options: [
-    slashOption(
-      true,
-      new SlashCommandUserOption()
-        .setName("target")
-        .setDescription("Target user"),
-    ),
-    slashOption(
-      true,
-      new SlashCommandStringOption()
-        .setName("action")
-        .setDescription("The action to undertake")
-        .setChoices(
-          { name: "Note", value: "note" },
-          { name: "Warn", value: "warn" },
-          {
-            name: "Timeout (1 day)",
-            value: `timeout:${Duration.fromObject({ days: 1 }).toMillis()}`,
-          },
-          {
-            name: "Timeout (1 week)",
-            value: `timeout:${Duration.fromObject({ weeks: 1 }).toMillis()}`,
-          },
-          { name: "Kick", value: "kick" },
-          { name: "Ban (keep messages)", value: "ban:0" },
-          {
-            name: "Ban (delete messages)",
-            value: `ban:${Duration.fromObject({ days: 7 }).as("seconds")}`,
-          },
-        ),
-    ),
-    slashOption(
-      true,
-      new SlashCommandStringOption()
-        .setName("body")
-        .setDescription("The reason/note body"),
-    ),
-    slashOption(
-      true,
-      new SlashCommandBooleanOption()
-        .setName("dm")
-        .setDescription(
-          "Send a DM to the user; always false for note, always true for warn",
-        ),
-    ),
-    slashOption(
-      false,
-      new SlashCommandAttachmentOption()
-        .setName("image1")
-        .setDescription("Image to add to the log"),
-    ),
-    slashOption(
-      false,
-      new SlashCommandAttachmentOption()
-        .setName("image2")
-        .setDescription("Image to add to the log"),
-    ),
-    slashOption(
-      false,
-      new SlashCommandAttachmentOption()
-        .setName("image3")
-        .setDescription("Image to add to the log"),
-    ),
-    slashOption(
-      false,
-      new SlashCommandAttachmentOption()
-        .setName("image4")
-        .setDescription("Image to add to the log"),
-    ),
+    {
+      name: "target",
+      type: "user",
+      description: "Target user",
+      required: true,
+    },
+    {
+      name: "action",
+      description: "The action to undertake",
+      required: true,
+      type: "string",
+      choices: [
+        { name: "Note", value: "note" },
+        { name: "Warn", value: "warn" },
+        {
+          name: "Timeout (1 day)",
+          value: `timeout:${Duration.fromObject({ days: 1 }).toMillis()}`,
+        },
+        {
+          name: "Timeout (1 week)",
+          value: `timeout:${Duration.fromObject({ weeks: 1 }).toMillis()}`,
+        },
+        { name: "Kick", value: "kick" },
+        { name: "Ban (keep messages)", value: "ban:0" },
+        {
+          name: "Ban (delete messages)",
+          value: `ban:${Duration.fromObject({ days: 7 }).as("seconds")}`,
+        },
+      ],
+    },
+    {
+      name: "body",
+      type: "string",
+      required: true,
+      description: "The reason/note body",
+    },
+    {
+      name: "dm",
+      type: "boolean",
+      required: true,
+      description:
+        "Send a DM to the user; always false for note, always true for warn",
+    },
+    {
+      name: "image1",
+      type: "attachment",
+      required: false,
+      description: "Image to add to the log",
+    },
+    {
+      name: "image2",
+      type: "attachment",
+      required: false,
+      description: "Image to add to the log",
+    },
+    {
+      name: "image3",
+      type: "attachment",
+      required: false,
+      description: "Image to add to the log",
+    },
+    {
+      name: "image4",
+      type: "attachment",
+      required: false,
+      description: "Image to add to the log",
+    },
   ],
   async handle(interaction, targetUser, rawAction, body, dm, ...attachments) {
     if (!interaction.inCachedGuild()) {

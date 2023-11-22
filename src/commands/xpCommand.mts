@@ -1,33 +1,18 @@
 import { Drizzle } from "../clients.mjs"
-import { slashCommand, slashOption } from "../models/slashCommand.mjs"
+import { slashCommand } from "../models/slashCommand.mjs"
 import { usersTable } from "../schema.mjs"
 import { tryFetchMember } from "../util/discord.mjs"
-import {
-  EmbedBuilder,
-  PermissionFlagsBits,
-  SlashCommandIntegerOption,
-  SlashCommandUserOption,
-  userMention,
-} from "discord.js"
+import { EmbedBuilder, PermissionFlagsBits, userMention } from "discord.js"
 
 export const XpCommand = slashCommand({
   name: "xp",
   description: "Set a user's XP",
   dmPermission: false,
   defaultMemberPermissions: PermissionFlagsBits.Administrator,
+  nsfw: false,
   options: [
-    slashOption(
-      true,
-      new SlashCommandUserOption()
-        .setName("user")
-        .setDescription("Target user"),
-    ),
-    slashOption(
-      true,
-      new SlashCommandIntegerOption()
-        .setName("value")
-        .setDescription("XP value"),
-    ),
+    { name: "user", description: "Target user", type: "user", required: true },
+    { name: "value", description: "XP value", type: "integer", required: true },
   ],
   async handle(interaction, user, xp) {
     if (!interaction.inCachedGuild() || user.bot) {

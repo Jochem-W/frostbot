@@ -10,6 +10,7 @@ export const ModCommand = slashCommand({
   description: "Commands related to moderation",
   defaultMemberPermissions: PermissionFlagsBits.ModerateMembers,
   dmPermission: false,
+  nsfw: false,
   subcommands: [
     ActSubcommand,
     AttachSubcommand,

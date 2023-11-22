@@ -1,539 +1,609 @@
 import {
-  type ChatInputCommandInteraction,
-  SlashCommandStringOption,
-  SlashCommandNumberOption,
-  SlashCommandBooleanOption,
-  SlashCommandUserOption,
-  SlashCommandChannelOption,
-  SlashCommandRoleOption,
-  SlashCommandMentionableOption,
-  SlashCommandIntegerOption,
-  SlashCommandAttachmentOption,
-  User,
-  type Channel,
-  Role,
-  Attachment,
-  AutocompleteInteraction,
-  type AutocompleteFocusedOption,
-  GuildMember,
-  type ApplicationCommandOptionChoiceData,
-  SlashCommandBuilder,
+  APIApplicationCommandOptionChoice,
+  ApplicationCommandOptionAllowedChannelTypes,
+  ApplicationCommandOptionBase,
+  ApplicationCommandOptionChoiceData,
   ApplicationCommandOptionType,
-  SlashCommandSubcommandBuilder,
-  SlashCommandSubcommandGroupBuilder,
   ApplicationCommandType,
-  CommandInteraction,
+  Attachment,
+  AutocompleteFocusedOption,
+  AutocompleteInteraction,
+  Channel,
+  ChatInputCommandInteraction,
+  CommandInteractionOptionResolver,
+  LocaleString,
+  Permissions,
+  Role,
+  SlashCommandAttachmentOption,
+  SlashCommandBooleanOption,
+  SlashCommandBuilder,
+  SlashCommandChannelOption,
+  SlashCommandIntegerOption,
+  SlashCommandMentionableOption,
+  SlashCommandNumberOption,
+  SlashCommandOptionsOnlyBuilder,
+  SlashCommandRoleOption,
+  SlashCommandSubcommandBuilder,
+  SlashCommandUserOption,
+  User,
 } from "discord.js"
 
-type Options =
-  | SlashCommandStringOption
-  | SlashCommandIntegerOption
-  | SlashCommandBooleanOption
-  | SlashCommandUserOption
-  | SlashCommandChannelOption
-  | SlashCommandRoleOption
-  | SlashCommandMentionableOption
-  | SlashCommandNumberOption
-  | SlashCommandAttachmentOption
+type LocalizationMap<Type extends string> = Partial<Record<LocaleString, Type>>
 
-type OptionValue<T extends Options> = T extends SlashCommandStringOption
-  ? string
-  : T extends SlashCommandIntegerOption
-  ? number
-  : T extends SlashCommandBooleanOption
-  ? boolean
-  : T extends SlashCommandUserOption
-  ? User
-  : T extends SlashCommandChannelOption
-  ? Channel
-  : T extends SlashCommandRoleOption
-  ? Role
-  : T extends SlashCommandMentionableOption
-  ? GuildMember | Role | User
-  : T extends SlashCommandNumberOption
-  ? number
-  : T extends SlashCommandAttachmentOption
-  ? Attachment
-  : never
+type SlashOptionSharedData<
+  Type extends SlashOptionTypeSimple,
+  Required extends boolean,
+> = {
+  name: Lowercase<string>
+  nameLocalizations?: LocalizationMap<Lowercase<string>>
+  description: string
+  descriptionLocalizations?: LocalizationMap<string>
+  type: Type
+  required: Required
+  minLength?: never
+  maxLength?: never
+  minValue?: never
+  maxValue?: never
+  choices?: never
+  autocomplete?: never
+  channelTypes?: never
+}
 
-type OptionValueWithRequired<
-  T extends Options,
-  TT extends boolean,
-> = TT extends true ? OptionValue<T> : OptionValue<T> | null
+type SlashOptionAutocompleteHandler<
+  Type extends Extract<SlashOptionTypeSimple, "string" | "number" | "integer">,
+> = (
+  interaction: AutocompleteInteraction,
+  value: (AutocompleteFocusedOption & { type: SlashOptionType<Type> })["value"],
+) =>
+  | ApplicationCommandOptionChoiceData<SlashOptionValueType<Type>>[]
+  | Promise<ApplicationCommandOptionChoiceData<SlashOptionValueType<Type>>[]>
 
-type InferOptionValuesWithRequired<
+type SlashOptionData<
+  Type extends SlashOptionTypeSimple,
+  Required extends boolean,
+> =
+  | (Omit<
+      SlashOptionSharedData<"string", Required>,
+      "minLength" | "maxLength" | "autocomplete"
+    > & {
+      minLength?: number
+      maxLength?: number
+      autocomplete?: SlashOptionAutocompleteHandler<"string">
+    })
+  | (Omit<
+      SlashOptionSharedData<"string", Required>,
+      "minLength" | "maxLength" | "choices"
+    > & {
+      minLength?: number
+      maxLength?: number
+      choices: APIApplicationCommandOptionChoice<string>[]
+    })
+  | (Omit<
+      SlashOptionSharedData<"number" | "integer", Required>,
+      "minValue" | "maxValue" | "autocomplete"
+    > & {
+      minValue?: number
+      maxValue?: number
+      autocomplete?: SlashOptionAutocompleteHandler<"number" | "integer">
+    })
+  | (Omit<
+      SlashOptionSharedData<"number" | "integer", Required>,
+      "minValue" | "maxValue" | "choices"
+    > & {
+      minValue?: number
+      maxValue?: number
+      choices: APIApplicationCommandOptionChoice<number>[]
+    })
+  | (Omit<SlashOptionSharedData<"channel", Required>, "channelTypes"> & {
+      channelTypes?: ApplicationCommandOptionAllowedChannelTypes[]
+    })
+  | SlashOptionSharedData<
+      Exclude<Type, "string" | "number" | "integer" | "channel">,
+      Required
+    >
+
+type SlashOptionTypeSimple =
+  | "string"
+  | "integer"
+  | "boolean"
+  | "user"
+  | "channel"
+  | "role"
+  | "mentionable"
+  | "number"
+  | "attachment"
+
+type SlashOptionType<Type extends SlashOptionTypeSimple> = Type extends "string"
+  ? ApplicationCommandOptionType.String
+  : Type extends SlashCommandIntegerOption
+    ? ApplicationCommandOptionType.Integer
+    : Type extends SlashCommandBooleanOption
+      ? ApplicationCommandOptionType.Boolean
+      : Type extends SlashCommandUserOption
+        ? ApplicationCommandOptionType.User
+        : Type extends SlashCommandChannelOption
+          ? ApplicationCommandOptionType.Channel
+          : Type extends SlashCommandRoleOption
+            ? ApplicationCommandOptionType.Role
+            : Type extends SlashCommandMentionableOption
+              ? ApplicationCommandOptionType.Mentionable
+              : Type extends SlashCommandNumberOption
+                ? ApplicationCommandOptionType.Number
+                : Type extends SlashCommandAttachmentOption
+                  ? ApplicationCommandOptionType.Attachment
+                  : never
+
+type SlashOptionValueType<Type extends SlashOptionTypeSimple> =
+  Type extends "string"
+    ? string
+    : Type extends "integer"
+      ? number
+      : Type extends "boolean"
+        ? boolean
+        : Type extends "user"
+          ? User
+          : Type extends "channel"
+            ? Channel
+            : Type extends "role"
+              ? Role
+              : Type extends "mentionable"
+                ? Exclude<
+                    ReturnType<
+                      CommandInteractionOptionResolver["getMentionable"]
+                    >,
+                    null
+                  >
+                : Type extends "number"
+                  ? number
+                  : Type extends "attachment"
+                    ? Attachment
+                    : never
+
+type SlashOptionValueTypeWithRequired<
+  Type extends SlashOptionTypeSimple,
+  Required extends boolean,
+> = Required extends true
+  ? SlashOptionValueType<Type>
+  : SlashOptionValueType<Type> | null
+
+type InferSlashOptionValueTypes<
   T extends readonly unknown[],
   R extends readonly unknown[] = readonly [],
 > = T extends readonly [infer TH, ...infer TT]
-  ? InferOptionValuesWithRequired<
+  ? InferSlashOptionValueTypes<
       TT,
-      TH extends SlashOption<Options, boolean>
-        ? readonly [...R, OptionValueWithRequired<TH["option"], TH["required"]>]
+      TH extends SlashOptionData<SlashOptionTypeSimple, boolean>
+        ? readonly [
+            ...R,
+            SlashOptionValueTypeWithRequired<TH["type"], TH["required"]>,
+          ]
         : R
     >
   : R
 
-type Handler<
-  T extends readonly [...(readonly SlashOption<Options, boolean>[])],
-> = (
-  interaction: ChatInputCommandInteraction,
-  ...values: readonly [...InferOptionValuesWithRequired<T>]
-) => Promise<void>
-
-// TODO: fix return type to be string or number correctly
-type AutocompleteHandler<T extends Options> = T extends
-  | SlashCommandStringOption
-  | SlashCommandIntegerOption
-  | SlashCommandNumberOption
-  ? (
-      interaction: AutocompleteInteraction,
-      value: AutocompleteFocusedOption & { type: T["type"] },
-    ) =>
-      | ApplicationCommandOptionChoiceData[]
-      | Promise<ApplicationCommandOptionChoiceData[]>
-  : never
-
-type SlashCommandInput<T extends readonly SlashOption<Options, boolean>[]> =
-  | {
-      name: Lowercase<string>
-      description: string
-      defaultMemberPermissions: bigint | null
-      dmPermission: boolean
-      options?: [...T]
-      handle: Handler<T>
-      transform?: (builder: SlashCommandBuilder) => void
-    }
-  | {
-      name: Lowercase<string>
-      description: string
-      defaultMemberPermissions: bigint | null
-      dmPermission: boolean
-      subcommands?: readonly ReturnType<typeof subcommand>[]
-      subcommandGroups: readonly ReturnType<typeof subcommandGroup>[]
-      transform?: (builder: SlashCommandBuilder) => void
-    }
-  | {
-      name: Lowercase<string>
-      description: string
-      defaultMemberPermissions: bigint | null
-      dmPermission: boolean
-      subcommands: readonly ReturnType<typeof subcommand>[]
-      subcommandGroups?: readonly ReturnType<typeof subcommandGroup>[]
-      transform?: (builder: SlashCommandBuilder) => void
-    }
-
-function optionNotFound(option: AutocompleteFocusedOption): never {
-  throw new Error(`Couldn't find an option with the name ${option.name}`)
+type SlashCommandSharedData = {
+  name: Lowercase<string>
+  nameLocalizations?: LocalizationMap<Lowercase<string>>
+  description: string
+  descriptionLocalizations?: LocalizationMap<string>
 }
 
-function noAutocompleteHandler(option: SlashOption<Options, boolean>): never {
-  throw new Error(
-    `Option with name ${option.option.name} doesn't have an autocomplete handler`,
+type SlashSubcommandData<
+  Options extends SlashOptionData<SlashOptionTypeSimple, boolean>[],
+> = SlashCommandSharedData & {
+  options?: [...Options]
+  subcommandGroups?: never
+  subcommands?: never
+  handle: (
+    interaction: ChatInputCommandInteraction,
+    ...options: [...InferSlashOptionValueTypes<Options>]
+  ) => Promise<void>
+}
+
+type SlashCommandData<
+  Options extends SlashOptionData<SlashOptionTypeSimple, boolean>[],
+> = SlashCommandSharedData & {
+  dmPermission: boolean
+  defaultMemberPermissions: Permissions | bigint | number | null
+  nsfw: boolean
+} & (
+    | {
+        options?: [...Options]
+        subcommandGroups?: never
+        subcommands?: never
+        handle: (
+          interaction: ChatInputCommandInteraction,
+          ...options: [...InferSlashOptionValueTypes<Options>]
+        ) => Promise<void>
+      }
+    | {
+        options?: never
+        subcommandGroups?: (SlashCommandSharedData & {
+          subcommandGroups?: never
+          subcommands: ReturnType<typeof slashSubcommand>[]
+        })[]
+        subcommands: ReturnType<typeof slashSubcommand>[]
+      }
+    | {
+        options?: never
+        subcommandGroups: (SlashCommandSharedData & {
+          subcommandGroups?: never
+          subcommands: ReturnType<typeof slashSubcommand>[]
+        })[]
+        subcommands?: ReturnType<typeof slashSubcommand>[]
+      }
   )
-}
 
-function subcommandGroupNotFound(
-  interaction: CommandInteraction | AutocompleteInteraction,
-  name: string,
-): never {
-  throw new Error(
-    `Couldn't find a subcommand group with name ${name} for command ${interaction.commandName}`,
-  )
-}
-
-function subcommandNotFound(
-  interaction: CommandInteraction | AutocompleteInteraction,
-  name: string,
-): never {
-  throw new Error(
-    `Couldn't find a subcommand with name ${name} for command ${interaction.commandName}`,
-  )
-}
-
-function registerOption<T extends Options>(
-  builder: SlashCommandBuilder | SlashCommandSubcommandBuilder,
-  option: T,
+function applyShared<Builder extends ApplicationCommandOptionBase>(
+  option: SlashOptionData<SlashOptionTypeSimple, boolean>,
+  builder: Builder,
 ) {
-  switch (option.type) {
-    case ApplicationCommandOptionType.String:
-      builder.addStringOption(option)
-      break
-    case ApplicationCommandOptionType.Integer:
-      builder.addIntegerOption(option)
-      break
-    case ApplicationCommandOptionType.Boolean:
-      builder.addBooleanOption(option)
-      break
-    case ApplicationCommandOptionType.User:
-      builder.addUserOption(option)
-      break
-    case ApplicationCommandOptionType.Channel:
-      builder.addChannelOption(option)
-      break
-    case ApplicationCommandOptionType.Role:
-      builder.addRoleOption(option)
-      break
-    case ApplicationCommandOptionType.Mentionable:
-      builder.addMentionableOption(option)
-      break
-    case ApplicationCommandOptionType.Number:
-      builder.addNumberOption(option)
-      break
-    case ApplicationCommandOptionType.Attachment:
-      builder.addAttachmentOption(option)
-      break
-  }
-}
+  builder
+    .setName(option.name)
+    .setDescription(option.description)
+    .setRequired(option.required)
 
-function getOptionValue<T extends Options, TT extends boolean>(
-  interaction: ChatInputCommandInteraction,
-  option: T,
-  required: TT,
-) {
-  let value
-  switch (option.type) {
-    case ApplicationCommandOptionType.String:
-      value = interaction.options.getString(option.name, required)
-      break
-    case ApplicationCommandOptionType.Integer:
-      value = interaction.options.getInteger(option.name, required)
-      break
-    case ApplicationCommandOptionType.Boolean:
-      value = interaction.options.getBoolean(option.name, required)
-      break
-    case ApplicationCommandOptionType.User:
-      value = interaction.options.getUser(option.name, required)
-      break
-    case ApplicationCommandOptionType.Channel:
-      value = interaction.options.getChannel(option.name, required)
-      break
-    case ApplicationCommandOptionType.Role:
-      value = interaction.options.getRole(option.name, required)
-      break
-    case ApplicationCommandOptionType.Mentionable:
-      value = interaction.options.getMentionable(option.name, required)
-      break
-    case ApplicationCommandOptionType.Number:
-      value = interaction.options.getNumber(option.name, required)
-      break
-    case ApplicationCommandOptionType.Attachment:
-      value = interaction.options.getAttachment(option.name, required)
-      break
+  if (option.nameLocalizations) {
+    builder.setNameLocalizations(option.nameLocalizations)
   }
 
-  return value as OptionValueWithRequired<T, TT>
+  if (option.descriptionLocalizations) {
+    builder.setDescriptionLocalizations(option.descriptionLocalizations)
+  }
+
+  return builder
+}
+
+function addOption(
+  option: SlashOptionData<SlashOptionTypeSimple, boolean>,
+  commandBuilder:
+    | SlashCommandOptionsOnlyBuilder
+    | SlashCommandSubcommandBuilder,
+) {
+  switch (option.type) {
+    case "string":
+      commandBuilder.addStringOption((builder) => {
+        applyShared(option, builder).setAutocomplete(
+          option.autocomplete !== undefined,
+        )
+
+        if (typeof option.minLength === "number") {
+          builder.setMinLength(option.minLength)
+        }
+
+        if (typeof option.maxLength === "number") {
+          builder.setMaxLength(option.maxLength)
+        }
+
+        if (option.choices) {
+          builder.setChoices(...option.choices)
+        }
+
+        return builder
+      })
+      break
+    case "number":
+      commandBuilder.addNumberOption((builder) => {
+        applyShared(option, builder).setAutocomplete(
+          option.autocomplete !== undefined,
+        )
+
+        if (typeof option.minValue === "number") {
+          builder.setMinValue(option.minValue)
+        }
+
+        if (typeof option.maxValue === "number") {
+          builder.setMaxValue(option.maxValue)
+        }
+
+        if (option.choices) {
+          builder.setChoices(...option.choices)
+        }
+
+        return builder
+      })
+      break
+    case "boolean":
+      commandBuilder.addBooleanOption((builder) => applyShared(option, builder))
+      break
+    case "integer":
+      commandBuilder.addIntegerOption((builder) => {
+        applyShared(option, builder).setAutocomplete(
+          option.autocomplete !== undefined,
+        )
+
+        if (typeof option.minValue === "number") {
+          builder.setMinValue(option.minValue)
+        }
+
+        if (typeof option.maxValue === "number") {
+          builder.setMaxValue(option.maxValue)
+        }
+
+        if (option.choices) {
+          builder.setChoices(...option.choices)
+        }
+
+        return builder
+      })
+      break
+    case "user":
+      commandBuilder.addUserOption((builder) => applyShared(option, builder))
+      break
+    case "channel":
+      commandBuilder.addChannelOption((builder) => {
+        applyShared(option, builder)
+
+        if (option.channelTypes) {
+          builder.addChannelTypes(...option.channelTypes)
+        }
+        return builder
+      })
+      break
+    case "role":
+      commandBuilder.addRoleOption((builder) => applyShared(option, builder))
+      break
+    case "mentionable":
+      commandBuilder.addMentionableOption((builder) =>
+        applyShared(option, builder),
+      )
+      break
+    case "attachment":
+      commandBuilder.addAttachmentOption((builder) =>
+        applyShared(option, builder),
+      )
+      break
+    default:
+      throw new Error(`Invalid option type`)
+  }
+
+  return commandBuilder
+}
+
+function getOption<
+  Type extends SlashOptionTypeSimple,
+  Required extends boolean,
+>(
+  interaction: ChatInputCommandInteraction,
+  option: SlashOptionData<Type, Required>,
+): SlashOptionValueTypeWithRequired<Type, Required> {
+  switch (option.type) {
+    case "string":
+      return interaction.options.getString(
+        option.name,
+        option.required,
+      ) as SlashOptionValueTypeWithRequired<Type, Required>
+    case "number":
+      return interaction.options.getNumber(
+        option.name,
+        option.required,
+      ) as SlashOptionValueTypeWithRequired<Type, Required>
+    case "boolean":
+      return interaction.options.getBoolean(
+        option.name,
+        option.required,
+      ) as SlashOptionValueTypeWithRequired<Type, Required>
+    case "integer":
+      return interaction.options.getInteger(
+        option.name,
+        option.required,
+      ) as SlashOptionValueTypeWithRequired<Type, Required>
+    case "user":
+      return interaction.options.getUser(
+        option.name,
+        option.required,
+      ) as SlashOptionValueTypeWithRequired<Type, Required>
+    case "channel":
+      return interaction.options.getChannel(
+        option.name,
+        option.required,
+      ) as SlashOptionValueTypeWithRequired<Type, Required>
+    case "role":
+      return interaction.options.getRole(
+        option.name,
+        option.required,
+      ) as SlashOptionValueTypeWithRequired<Type, Required>
+    case "mentionable":
+      return interaction.options.getMentionable(
+        option.name,
+        option.required,
+      ) as SlashOptionValueTypeWithRequired<Type, Required>
+    case "attachment":
+      return interaction.options.getAttachment(
+        option.name,
+        option.required,
+      ) as SlashOptionValueTypeWithRequired<Type, Required>
+    default:
+      throw new Error(`Invalid option type ${option.type}`)
+  }
 }
 
 export function slashCommand<
-  T extends readonly SlashOption<Options, boolean>[],
->(input: SlashCommandInput<T>) {
-  const {
-    name,
-    description,
-    defaultMemberPermissions,
-    dmPermission,
-    transform,
-  } = input
-  const builder = new SlashCommandBuilder()
+  Data extends SlashOptionData<SlashOptionTypeSimple, boolean>[],
+>(data: SlashCommandData<Data>) {
+  const { name, nameLocalizations, description, descriptionLocalizations } =
+    data
+
+  const commandBuilder = new SlashCommandBuilder()
     .setName(name)
     .setDescription(description)
-    .setDefaultMemberPermissions(defaultMemberPermissions)
-    .setDMPermission(dmPermission)
+    .setDMPermission(data.dmPermission)
+    .setDefaultMemberPermissions(data.defaultMemberPermissions)
+    .setNSFW(data.nsfw)
 
-  let getOptionsAndHandle
-  let autocomplete
-  if ("handle" in input) {
-    const { options, handle } = input
+  if (nameLocalizations) {
+    commandBuilder.setNameLocalizations(nameLocalizations)
+  }
 
-    options?.map(({ option }) => registerOption(builder, option))
+  if (descriptionLocalizations) {
+    commandBuilder.setDescriptionLocalizations(descriptionLocalizations)
+  }
 
-    autocomplete = async (interaction: AutocompleteInteraction) => {
-      const autocompleteOption = interaction.options.getFocused(true)
-      const option = options?.find(
-        ({ option }) => option.name === autocompleteOption.name,
-      )
+  if ("options" in data) {
+    for (const option of data.options) {
+      addOption(option, commandBuilder)
+    }
+  }
 
-      if (!option) {
-        optionNotFound(autocompleteOption)
+  if ("subcommands" in data) {
+    for (const subcommandData of data.subcommands) {
+      commandBuilder.addSubcommand(subcommandData.builder)
+    }
+  }
+
+  if ("subcommandGroups" in data) {
+    for (const subcommandGroupData of data.subcommandGroups) {
+      commandBuilder.addSubcommandGroup((builder) => {
+        builder
+          .setName(subcommandGroupData.name)
+          .setDescription(subcommandGroupData.description)
+
+        if (subcommandGroupData.nameLocalizations) {
+          builder.setNameLocalizations(subcommandGroupData.nameLocalizations)
+        }
+
+        if (subcommandGroupData.descriptionLocalizations) {
+          builder.setDescriptionLocalizations(
+            subcommandGroupData.descriptionLocalizations,
+          )
+        }
+
+        for (const subcommandData of subcommandGroupData.subcommands) {
+          builder.addSubcommand(subcommandData.builder)
+        }
+
+        return builder
+      })
+    }
+  }
+
+  if ("handle" in data) {
+    return {
+      type: ApplicationCommandType.ChatInput as const,
+      builder: commandBuilder,
+      async handle(interaction: ChatInputCommandInteraction) {
+        const optionValues = []
+        if (data.options) {
+          for (const option of data.options) {
+            optionValues.push(getOption(interaction, option))
+          }
+        }
+
+        await data.handle(
+          interaction,
+          ...(optionValues as unknown as InferSlashOptionValueTypes<Data>),
+        )
+      },
+      async autocomplete(interaction: AutocompleteInteraction) {
+        const focused = interaction.options.getFocused(true)
+        const option = data.options?.find((o) => o.name === focused.name)
+        if (!option || !option.autocomplete) {
+          throw new Error(`Option ${option?.name} doesn't have autocomplete`)
+        }
+
+        await interaction.respond(
+          await option.autocomplete(interaction, focused.value),
+        )
+      },
+    }
+  }
+
+  return {
+    type: ApplicationCommandType.ChatInput as const,
+    builder: commandBuilder,
+    async handle(interaction: ChatInputCommandInteraction) {
+      const subcommandGroupName = interaction.options.getSubcommandGroup(false)
+
+      let list = data.subcommands
+      if (subcommandGroupName) {
+        list = data.subcommandGroups?.find(
+          (group) => group.name === subcommandGroupName,
+        )?.subcommands
       }
 
-      if (!option.autocomplete) {
-        noAutocompleteHandler(option)
+      const subcommandName = interaction.options.getSubcommand(true)
+      const command = list?.find((sub) => sub.name === subcommandName)
+      if (!command) {
+        throw new Error(`Invalid subcommand ${subcommandName}`)
+      }
+
+      await command.handle(interaction)
+    },
+    async autocomplete(interaction: AutocompleteInteraction) {
+      const subcommandGroupName = interaction.options.getSubcommandGroup(false)
+
+      let list = data.subcommands
+      if (subcommandGroupName) {
+        list = data.subcommandGroups?.find(
+          (group) => group.name === subcommandGroupName,
+        )?.subcommands
+      }
+
+      const subcommandName = interaction.options.getSubcommand(true)
+      const command = list?.find((sub) => sub.name === subcommandName)
+      if (!command) {
+        throw new Error(`Invalid subcommand ${subcommandName}`)
+      }
+
+      await command.autocomplete(interaction)
+    },
+  }
+}
+
+export function slashSubcommand<
+  Data extends SlashOptionData<SlashOptionTypeSimple, boolean>[],
+>({
+  name,
+  nameLocalizations,
+  description,
+  descriptionLocalizations,
+  options,
+  handle,
+}: SlashSubcommandData<Data>) {
+  const builder = new SlashCommandSubcommandBuilder()
+    .setName(name)
+    .setDescription(description)
+
+  if (nameLocalizations) {
+    builder.setNameLocalizations(nameLocalizations)
+  }
+
+  if (descriptionLocalizations) {
+    builder.setDescriptionLocalizations(descriptionLocalizations)
+  }
+
+  if (options) {
+    for (const option of options) {
+      addOption(option, builder)
+    }
+  }
+
+  return {
+    name,
+    builder,
+    async handle(interaction: ChatInputCommandInteraction) {
+      const optionValues = []
+      if (options) {
+        for (const option of options) {
+          optionValues.push(getOption(interaction, option))
+        }
+      }
+
+      await handle(
+        interaction,
+        ...(optionValues as unknown as InferSlashOptionValueTypes<Data>),
+      )
+    },
+    async autocomplete(interaction: AutocompleteInteraction) {
+      const focused = interaction.options.getFocused(true)
+      const option = options?.find((o) => o.name === focused.name)
+      if (!option || !option.autocomplete) {
+        throw new Error(`Option ${option?.name} doesn't have autocomplete`)
       }
 
       await interaction.respond(
-        await option.autocomplete(interaction, autocompleteOption as never),
+        await option.autocomplete(interaction, focused.value),
       )
-    }
-
-    getOptionsAndHandle = async (interaction: ChatInputCommandInteraction) => {
-      const values = (options?.map(({ option, required }) =>
-        getOptionValue(interaction, option, required),
-      ) ?? []) as [...InferOptionValuesWithRequired<T>]
-      await handle(interaction, ...values)
-    }
-  } else {
-    const { subcommands, subcommandGroups } = input
-
-    if (subcommands) {
-      for (const subcommand of subcommands) {
-        builder.addSubcommand(subcommand.builder)
-      }
-    }
-
-    if (subcommandGroups) {
-      for (const subcommandGroup of subcommandGroups) {
-        builder.addSubcommandGroup(subcommandGroup.builder)
-      }
-    }
-
-    autocomplete = async (interaction: AutocompleteInteraction) => {
-      const subcommandGroupName = interaction.options.getSubcommandGroup()
-      const subcommandName = interaction.options.getSubcommand(true)
-
-      let subcommand
-      if (subcommandGroupName) {
-        const subcommandGroup = subcommandGroups?.find(
-          (g) => g.builder.name === subcommandGroupName,
-        )
-        if (!subcommandGroup) {
-          subcommandGroupNotFound(interaction, subcommandGroupName)
-        }
-
-        subcommand = subcommandGroup.subcommands.find(
-          (s) => s.builder.name === subcommandName,
-        )
-      } else {
-        subcommand = subcommands?.find((s) => s.builder.name === subcommandName)
-      }
-
-      if (!subcommand) {
-        subcommandNotFound(interaction, subcommandName)
-      }
-
-      await interaction.respond(await subcommand.autocomplete(interaction))
-    }
-
-    getOptionsAndHandle = async (interaction: ChatInputCommandInteraction) => {
-      const subcommandGroupName = interaction.options.getSubcommandGroup()
-      const subcommandName = interaction.options.getSubcommand(true)
-
-      let subcommand
-      if (subcommandGroupName) {
-        const subcommandGroup = subcommandGroups?.find(
-          (g) => g.builder.name === subcommandGroupName,
-        )
-        if (!subcommandGroup) {
-          subcommandGroupNotFound(interaction, subcommandGroupName)
-        }
-
-        subcommand = subcommandGroup.subcommands.find(
-          (s) => s.builder.name === subcommandName,
-        )
-      } else {
-        subcommand = subcommands?.find((s) => s.builder.name === subcommandName)
-      }
-
-      if (!subcommand) {
-        subcommandNotFound(interaction, subcommandName)
-      }
-
-      await subcommand.handle(interaction)
-    }
+    },
   }
-
-  if (transform) {
-    transform(builder)
-  }
-
-  return {
-    type: ApplicationCommandType.ChatInput as ApplicationCommandType.ChatInput,
-    builder,
-    handle: getOptionsAndHandle,
-    autocomplete,
-  }
-}
-
-type SlashOption<T extends Options, TT extends boolean> = {
-  option: T
-  required: TT
-  autocomplete?: AutocompleteHandler<T>
-}
-
-export function slashOption<T extends Options, TT extends boolean>(
-  required: TT,
-  data:
-    | {
-        option: T
-        autocomplete?: AutocompleteHandler<T>
-      }
-    | T,
-) {
-  let option
-  let autocomplete
-  if ("option" in data) {
-    option = data.option
-    autocomplete = data.autocomplete
-  } else {
-    option = data
-    autocomplete = undefined
-  }
-
-  if (required) {
-    option.setRequired(true)
-  }
-
-  if (autocomplete) {
-    if (
-      !(
-        option instanceof SlashCommandStringOption ||
-        option instanceof SlashCommandNumberOption ||
-        option instanceof SlashCommandIntegerOption
-      )
-    ) {
-      throw new Error(`Options of type ${option.type} can't be autocompleted`)
-    }
-
-    option.setAutocomplete(true)
-  }
-
-  return {
-    autocomplete,
-    option,
-    required,
-  } as SlashOption<T, TT>
-}
-
-export function groupedSubcommand<
-  T extends readonly SlashOption<Options, boolean>[],
->({
-  name,
-  description,
-  options,
-  handle,
-  transform,
-}: {
-  name: Lowercase<string>
-  description: string
-  options?: [...T]
-  handle: Handler<T>
-  transform?: (builder: SlashCommandSubcommandBuilder) => void
-}) {
-  const builder = new SlashCommandSubcommandBuilder()
-    .setName(name)
-    .setDescription(description)
-
-  options?.map(({ option }) => registerOption(builder, option))
-
-  if (transform) {
-    transform(builder)
-  }
-
-  const autocomplete = (interaction: AutocompleteInteraction) => {
-    const autocompleteOption = interaction.options.getFocused(true)
-    const option = options?.find(
-      ({ option }) => option.name === autocompleteOption.name,
-    )
-
-    if (!option) {
-      optionNotFound(autocompleteOption)
-    }
-
-    if (!option.autocomplete) {
-      noAutocompleteHandler(option)
-    }
-
-    return option.autocomplete(interaction, autocompleteOption as never)
-  }
-
-  const getOptionsAndHandle = async (
-    interaction: ChatInputCommandInteraction,
-  ) => {
-    const values = (options?.map(({ option, required }) =>
-      getOptionValue(interaction, option, required),
-    ) ?? []) as [...InferOptionValuesWithRequired<T>]
-
-    await handle(interaction, ...values)
-  }
-
-  return { builder, handle: getOptionsAndHandle, autocomplete, grouped: true }
-}
-
-export function subcommand<T extends readonly SlashOption<Options, boolean>[]>({
-  name,
-  description,
-  options,
-  handle,
-  transform,
-}: {
-  name: Lowercase<string>
-  description: string
-  options?: [...T]
-  handle: Handler<T>
-  transform?: (builder: SlashCommandSubcommandBuilder) => void
-}) {
-  const builder = new SlashCommandSubcommandBuilder()
-    .setName(name)
-    .setDescription(description)
-
-  options?.map(({ option }) => registerOption(builder, option))
-
-  if (transform) {
-    transform(builder)
-  }
-
-  const autocomplete = (interaction: AutocompleteInteraction) => {
-    const autocompleteOption = interaction.options.getFocused(true)
-    const option = options?.find(
-      ({ option }) => option.name === autocompleteOption.name,
-    )
-
-    if (!option) {
-      optionNotFound(autocompleteOption)
-    }
-
-    if (!option.autocomplete) {
-      noAutocompleteHandler(option)
-    }
-
-    return option.autocomplete(interaction, autocompleteOption as never)
-  }
-
-  const getOptionsAndHandle = async (
-    interaction: ChatInputCommandInteraction,
-  ) => {
-    const values = (options?.map(({ option, required }) =>
-      getOptionValue(interaction, option, required),
-    ) ?? []) as [...InferOptionValuesWithRequired<T>]
-
-    await handle(interaction, ...values)
-  }
-
-  return { builder, handle: getOptionsAndHandle, autocomplete }
-}
-
-export function subcommandGroup({
-  name,
-  description,
-  subcommands,
-  transform,
-}: {
-  name: Lowercase<string>
-  description: string
-  subcommands: ReturnType<typeof groupedSubcommand>[]
-  transform?: (builder: SlashCommandSubcommandGroupBuilder) => void
-}) {
-  const builder = new SlashCommandSubcommandGroupBuilder()
-    .setName(name)
-    .setDescription(description)
-
-  for (const subcommand of subcommands) {
-    builder.addSubcommand(subcommand.builder)
-  }
-
-  if (transform) {
-    transform(builder)
-  }
-
-  return { builder, subcommands }
 }

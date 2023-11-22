@@ -1,18 +1,12 @@
 import { ModMenuState, modMenu } from "../../../messages/modMenu.mjs"
-import { subcommand, slashOption } from "../../../models/slashCommand.mjs"
+import { slashSubcommand } from "../../../models/slashCommand.mjs"
 import { tryFetchMember } from "../../../util/discord.mjs"
-import { SlashCommandUserOption } from "discord.js"
 
-export const MenuSubcommand = subcommand({
+export const MenuSubcommand = slashSubcommand({
   name: "menu",
   description: "Open the moderation menu for a user",
   options: [
-    slashOption(
-      true,
-      new SlashCommandUserOption()
-        .setName("user")
-        .setDescription("Target user"),
-    ),
+    { name: "user", description: "Target user", type: "user", required: true },
   ],
   async handle(interaction, target) {
     if (!interaction.inCachedGuild()) {

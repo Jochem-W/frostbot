@@ -1,7 +1,7 @@
 import { Drizzle } from "../../../clients.mjs"
 import { Colours } from "../../../models/colours.mjs"
 import { Config } from "../../../models/config.mjs"
-import { subcommand, slashOption } from "../../../models/slashCommand.mjs"
+import { slashSubcommand } from "../../../models/slashCommand.mjs"
 import {
   attachmentsTable,
   actionsTable,
@@ -9,48 +9,43 @@ import {
 } from "../../../schema.mjs"
 import { attachmentsAreImages } from "../../../util/discord.mjs"
 import { uploadAttachments } from "../../../util/s3.mjs"
-import {
-  SlashCommandIntegerOption,
-  SlashCommandAttachmentOption,
-  Attachment,
-  EmbedBuilder,
-} from "discord.js"
+import { Attachment, EmbedBuilder } from "discord.js"
 import { sql, eq } from "drizzle-orm"
 
-export const AttachSubcommand = subcommand({
+export const AttachSubcommand = slashSubcommand({
   name: "attach",
   description: "Attach images to a log",
   options: [
-    slashOption(
-      true,
-      new SlashCommandIntegerOption()
-        .setName("id")
-        .setDescription("Action log ID"),
-    ),
-    slashOption(
-      true,
-      new SlashCommandAttachmentOption()
-        .setName("image")
-        .setDescription("Image to attach"),
-    ),
-    slashOption(
-      false,
-      new SlashCommandAttachmentOption()
-        .setName("image2")
-        .setDescription("Image to attach"),
-    ),
-    slashOption(
-      false,
-      new SlashCommandAttachmentOption()
-        .setName("image3")
-        .setDescription("Image to attach"),
-    ),
-    slashOption(
-      false,
-      new SlashCommandAttachmentOption()
-        .setName("image4")
-        .setDescription("Image to attach"),
-    ),
+    {
+      name: "id",
+      description: "Action log ID",
+      type: "integer",
+      required: true,
+    },
+    {
+      name: "image1",
+      description: "Image to attach",
+      type: "attachment",
+      required: true,
+    },
+    {
+      name: "image2",
+      description: "Image to attach",
+      type: "attachment",
+      required: true,
+    },
+    {
+      name: "image3",
+      description: "Image to attach",
+      type: "attachment",
+      required: true,
+    },
+    {
+      name: "image4",
+      description: "Image to attach",
+      type: "attachment",
+      required: true,
+    },
   ],
   async handle(interaction, id, ...attachments) {
     const filtered = attachments.filter(

@@ -1,17 +1,11 @@
 import { modHistory } from "../../../messages/modHistory.mjs"
-import { subcommand, slashOption } from "../../../models/slashCommand.mjs"
-import { SlashCommandUserOption } from "discord.js"
+import { slashSubcommand } from "../../../models/slashCommand.mjs"
 
-export const HistorySubcommand = subcommand({
+export const HistorySubcommand = slashSubcommand({
   name: "history",
   description: "Retrieve the moderation history for a user",
   options: [
-    slashOption(
-      true,
-      new SlashCommandUserOption()
-        .setName("user")
-        .setDescription("Target user"),
-    ),
+    { name: "user", description: "Target user", type: "user", required: true },
   ],
   async handle(interaction, user) {
     if (!interaction.inCachedGuild()) {
