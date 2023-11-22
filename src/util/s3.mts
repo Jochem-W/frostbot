@@ -2,6 +2,7 @@ import { S3 } from "../clients.mjs"
 import { Config } from "../models/config.mjs"
 import { Options, Upload } from "@aws-sdk/lib-storage"
 import { Attachment } from "discord.js"
+import { Readable } from "stream"
 
 export async function uploadAttachment(
   attachment: Attachment & { contentType: string },
@@ -23,7 +24,7 @@ export async function uploadAttachment(
   }
 
   if (response.body) {
-    options.params.Body = response.body
+    options.params.Body = response.body as unknown as Readable
   }
 
   await new Upload(options).done()
