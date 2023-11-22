@@ -12,15 +12,15 @@ type Interaction<T extends ContextMenuCommandType> =
   T extends ApplicationCommandType.Message
     ? MessageContextMenuCommandInteraction
     : T extends ApplicationCommandType.User
-    ? UserContextMenuCommandInteraction
-    : never
+      ? UserContextMenuCommandInteraction
+      : never
 
 type Value<T extends ContextMenuCommandType> =
   T extends ApplicationCommandType.Message
     ? Message
     : T extends ApplicationCommandType.User
-    ? User
-    : never
+      ? User
+      : never
 
 export function contextMenuCommand<T extends ContextMenuCommandType>({
   name,

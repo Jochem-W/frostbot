@@ -17,19 +17,19 @@ export type Command<T extends ApplicationCommandType> =
         autocomplete: (interaction: AutocompleteInteraction) => Promise<void>
       }
     : T extends ApplicationCommandType.Message
-    ? {
-        type: T
-        builder: ContextMenuCommandBuilder
-        handle: (
-          interaction: MessageContextMenuCommandInteraction,
-        ) => Promise<void>
-      }
-    : T extends ApplicationCommandType.User
-    ? {
-        type: T
-        builder: ContextMenuCommandBuilder
-        handle: (
-          interaction: UserContextMenuCommandInteraction,
-        ) => Promise<void>
-      }
-    : never
+      ? {
+          type: T
+          builder: ContextMenuCommandBuilder
+          handle: (
+            interaction: MessageContextMenuCommandInteraction,
+          ) => Promise<void>
+        }
+      : T extends ApplicationCommandType.User
+        ? {
+            type: T
+            builder: ContextMenuCommandBuilder
+            handle: (
+              interaction: UserContextMenuCommandInteraction,
+            ) => Promise<void>
+          }
+        : never
