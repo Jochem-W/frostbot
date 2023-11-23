@@ -28,6 +28,7 @@ import {
   type SelectMenuComponentOptionData,
   Message,
   Client,
+  Snowflake,
 } from "discord.js"
 import { Duration } from "luxon"
 
@@ -454,6 +455,37 @@ export async function tryInsertImages(
   }
 
   return { success: true, data }
+}
+
+export function formatTitle(
+  staff: User | GuildMember | Snowflake,
+  target: User | GuildMember | Snowflake,
+  action: typeof actionsTable.$inferSelect.action,
+) {
+  const staffUser = staff instanceof GuildMember ? staff.user : staff
+  const targetUser = target instanceof GuildMember ? target.user : target
+
+  const staffName =
+    staffUser instanceof User ? staffUser.displayName : staffUser
+  const targetName =
+    targetUser instanceof User ? targetUser.displayName : targetUser
+
+  switch (action) {
+    case "warn":
+      return `${staffName} issued a warning on ${targetName}`
+    case "kick":
+    case "timeout":
+    case "ban":
+      return `${staffName} issued a ${action} on ${targetName}`
+    case "restrain":
+      return `${staffName} issued a restraint on ${targetName}`
+    case "note":
+      return `${staffName} created a note for ${targetName}`
+    case "untimeout":
+      return `${staffName} removed a timeout for ${targetName}`
+    case "unban":
+      return `${staffName} removed a ban for ${targetName}`
+  }
 }
 
 export type DmStatus =

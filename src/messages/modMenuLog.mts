@@ -5,6 +5,7 @@ import {
   ActionStatus,
   DmStatus,
   InsertStatus,
+  formatTitle,
 } from "../commands/mod/shared.mjs"
 import { Config } from "../models/config.mjs"
 import { actionsTable, attachmentsTable } from "../schema.mjs"
@@ -73,7 +74,7 @@ export function modMenuLog({
 
   mainEmbed
     .setAuthor({
-      name: formatTitle(state),
+      name: formatTitle(state.staff, state.target, state.action),
       iconURL: staffUser.displayAvatarURL(),
     })
     .setThumbnail(targetUser.displayAvatarURL())
@@ -275,32 +276,6 @@ export async function modMenuLogFromDb(
   }
 
   return modMenuLog(params)
-}
-
-function formatTitle({
-  action,
-  staff,
-  target,
-}: Pick<ModMenuState, "action" | "staff" | "target">) {
-  const targetUser = target instanceof GuildMember ? target.user : target
-  const staffUser = staff instanceof GuildMember ? staff.user : staff
-
-  switch (action) {
-    case "warn":
-      return `${staffUser.displayName} issued a warning on ${targetUser.displayName}`
-    case "kick":
-    case "timeout":
-    case "ban":
-      return `${staffUser.displayName} issued a ${action} on ${targetUser.displayName}`
-    case "restrain":
-      return `${staffUser.displayName} issued a restraint on ${targetUser.displayName}`
-    case "note":
-      return `${staffUser.displayName} created a note for ${targetUser.displayName}`
-    case "untimeout":
-      return `${staffUser.displayName} removed a timeout for ${targetUser.displayName}`
-    case "unban":
-      return `${staffUser.displayName} removed a ban for ${targetUser.displayName}`
-  }
 }
 
 function formatActionFail({

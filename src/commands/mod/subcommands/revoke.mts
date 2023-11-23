@@ -3,13 +3,14 @@ import { Colours } from "../../../models/colours.mjs"
 import { slashSubcommand } from "../../../models/slashCommand.mjs"
 import { actionLogsTable, actionsTable } from "../../../schema.mjs"
 import { fetchChannel } from "../../../util/discord.mjs"
+import { formatTitle } from "../shared.mjs"
 import {
   ChannelType,
   EmbedBuilder,
   escapeStrikethrough,
   strikethrough,
 } from "discord.js"
-import { eq, sql } from "drizzle-orm"
+import { and, eq, sql } from "drizzle-orm"
 
 export const RevokeSubcommand = slashSubcommand({
   name: "revoke",
@@ -25,18 +26,36 @@ export const RevokeSubcommand = slashSubcommand({
           id: actionsTable.id,
           action: actionsTable.action,
           userId: actionsTable.userId,
+          staffId: actionsTable.staffId,
+          body: actionsTable.body,
         })
           .from(actionsTable)
-          .where(sql`${actionsTable.id}::TEXT LIKE '%${value}%'`)
+          .where(
+            and(
+              sql`${actionsTable.id}::TEXT LIKE ${`%${value}%`}`,
+              eq(actionsTable.revoked, false),
+            ),
+          )
           .limit(25)
 
         return matches.map((action) => {
-          const user = interaction.client.users.cache.get(action.userId)
+          let name = `${action.id}: ${formatTitle(
+            interaction.client.users.cache.get(action.staffId) ??
+              action.staffId,
+            interaction.client.users.cache.get(action.userId) ?? action.userId,
+            action.action,
+          )}`
+
+          if (action.body) {
+            if (name.length + action.body.length + 3 <= 100) {
+              name = `${name} (${action.body})`
+            } else if (name.length + 5 < 100) {
+              name = `${name} (${action.body.slice(0, 100 - name.length - 4)}…)`
+            }
+          }
 
           return {
-            name: `${action.id}: ${action.action} ${
-              user ? user.displayName : ""
-            }`.trim(),
+            name,
             value: action.id,
           }
         })
