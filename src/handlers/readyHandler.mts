@@ -52,6 +52,8 @@ export const ReadyHandler = handler({
     )) as RESTPutAPIApplicationCommandsResult
 
     for (const applicationCommand of applicationCommands) {
+      console.log("Registering command", applicationCommand.name)
+
       let command: Command<ApplicationCommandType> | undefined
       switch (applicationCommand.type) {
         case ApplicationCommandType.ChatInput:
