@@ -68,7 +68,11 @@ export const RevokeSubcommand = slashSubcommand({
     const [action] = await Drizzle.update(actionsTable)
       .set({ revoked: true })
       .where(eq(actionsTable.id, id))
-      .returning({ body: actionsTable.body })
+      .returning({ body: actionsTable.body, userId: actionsTable.userId })
+
+    if (!action) {
+      throw new Error(`Invalid action ${id}`)
+    }
 
     const logs = await Drizzle.select()
       .from(actionLogsTable)
@@ -81,10 +85,12 @@ export const RevokeSubcommand = slashSubcommand({
       )
       const message = await channel.messages.fetch(log.messageId)
       const embeds = message.embeds.map((embed) => new EmbedBuilder(embed.data))
-      const description = embeds[0]?.data.description
-      if (description) {
-        embeds[0]?.setDescription(
-          strikethrough(escapeStrikethrough(description)),
+      const reasonField = embeds[0]?.data.fields?.find(
+        (field) => field.name === "❔ Reason" || field.name === "🗒️ Body",
+      )
+      if (reasonField) {
+        reasonField.value = strikethrough(
+          escapeStrikethrough(reasonField.value),
         )
       }
 
@@ -95,10 +101,25 @@ export const RevokeSubcommand = slashSubcommand({
       }
 
       await channel.messages.edit(log.messageId, { embeds })
+      await channel.send({
+        embeds: [
+          new EmbedBuilder()
+            .setAuthor({
+              name: `Action revoked by ${interaction.user.displayName}`,
+              iconURL: interaction.user.displayAvatarURL(),
+            })
+            .setColor(Colours.red[500]),
+        ],
+        reply: {
+          messageReference: log.messageId,
+        },
+      })
     }
 
+    const targetUser = await interaction.client.users.fetch(action.userId)
+
     const embed = new EmbedBuilder()
-      .setTitle(`Revoked action ${id}`)
+      .setTitle(`Revoked action ${id} against ${targetUser.displayName}`)
       .setColor(Colours.green[500])
 
     if (action?.body) {
