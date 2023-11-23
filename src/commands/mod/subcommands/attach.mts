@@ -9,8 +9,9 @@ import {
 } from "../../../schema.mjs"
 import { attachmentsAreImages } from "../../../util/discord.mjs"
 import { uploadAttachments } from "../../../util/s3.mjs"
+import { formatTitle } from "../shared.mjs"
 import { Attachment, EmbedBuilder } from "discord.js"
-import { sql, eq } from "drizzle-orm"
+import { sql, eq, and } from "drizzle-orm"
 
 export const AttachSubcommand = slashSubcommand({
   name: "attach",
@@ -21,6 +22,46 @@ export const AttachSubcommand = slashSubcommand({
       description: "Action log ID",
       type: "integer",
       required: true,
+      async autocomplete(interaction, value) {
+        const matches = await Drizzle.select({
+          id: actionsTable.id,
+          action: actionsTable.action,
+          userId: actionsTable.userId,
+          staffId: actionsTable.staffId,
+          body: actionsTable.body,
+        })
+          .from(actionsTable)
+          .where(
+            and(
+              sql`${actionsTable.id}::TEXT LIKE ${`%${value}%`}`,
+              eq(actionsTable.revoked, false),
+              eq(actionsTable.hidden, false),
+            ),
+          )
+          .limit(25)
+
+        return matches.map((action) => {
+          let name = `${action.id}: ${formatTitle(
+            interaction.client.users.cache.get(action.staffId) ??
+              action.staffId,
+            interaction.client.users.cache.get(action.userId) ?? action.userId,
+            action.action,
+          )}`
+
+          if (action.body) {
+            if (name.length + action.body.length + 3 <= 100) {
+              name = `${name} (${action.body})`
+            } else if (name.length + 5 < 100) {
+              name = `${name} (${action.body.slice(0, 100 - name.length - 4)}…)`
+            }
+          }
+
+          return {
+            name,
+            value: action.id,
+          }
+        })
+      },
     },
     {
       name: "image1",
