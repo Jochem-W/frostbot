@@ -34,6 +34,7 @@ export const RevokeSubcommand = slashSubcommand({
             and(
               sql`${actionsTable.id}::TEXT LIKE ${`%${value}%`}`,
               eq(actionsTable.revoked, false),
+              eq(actionsTable.hidden, false),
             ),
           )
           .limit(25)
@@ -61,12 +62,18 @@ export const RevokeSubcommand = slashSubcommand({
         })
       },
     },
+    {
+      name: "hide",
+      description: "Completely hide the action log (not recommended)",
+      type: "boolean",
+      required: false,
+    },
   ],
-  async handle(interaction, id) {
+  async handle(interaction, id, hide) {
     await interaction.deferReply({ ephemeral: true })
 
     const [action] = await Drizzle.update(actionsTable)
-      .set({ revoked: true })
+      .set({ revoked: true, hidden: hide ?? false })
       .where(eq(actionsTable.id, id))
       .returning({ body: actionsTable.body, userId: actionsTable.userId })
 
@@ -105,7 +112,9 @@ export const RevokeSubcommand = slashSubcommand({
         embeds: [
           new EmbedBuilder()
             .setAuthor({
-              name: `Action revoked by ${interaction.user.displayName}`,
+              name: `Action revoked${hide ? " and hidden" : ""} by ${
+                interaction.user.displayName
+              }`,
               iconURL: interaction.user.displayAvatarURL(),
             })
             .setColor(Colours.red[500]),

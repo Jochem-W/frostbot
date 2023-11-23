@@ -35,6 +35,7 @@ export const actionsTable = pgTable("actions", {
   deleteMessageSeconds: integer("deleteMessageSecconds"),
   timedOutUntil: timestamp("timedOutUntil"),
   revoked: boolean("revoked").notNull().default(false),
+  hidden: boolean("hidden").notNull().default(false),
 })
 
 export const usersTable = pgTable("users", {

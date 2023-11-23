@@ -32,7 +32,7 @@ import {
   strikethrough,
   escapeStrikethrough,
 } from "discord.js"
-import { desc, eq, sql } from "drizzle-orm"
+import { and, desc, eq, sql } from "drizzle-orm"
 
 const bodyLength = 75
 
@@ -138,14 +138,18 @@ export async function modMenu(state: ModMenuState) {
 
   const history = await Drizzle.select()
     .from(actionsTable)
-    .where(eq(actionsTable.userId, target.id))
+    .where(
+      and(eq(actionsTable.userId, target.id), eq(actionsTable.hidden, false)),
+    )
     .orderBy(desc(actionsTable.timestamp))
     .limit(5)
   const [countData] = await Drizzle.select({
     count: sql<string>`count (*)`,
   })
     .from(actionsTable)
-    .where(eq(actionsTable.userId, target.id))
+    .where(
+      and(eq(actionsTable.userId, target.id), eq(actionsTable.hidden, false)),
+    )
 
   const count = countData?.count ? BigInt(countData.count) : null
 

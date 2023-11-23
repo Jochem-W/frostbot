@@ -1,6 +1,6 @@
 import { Drizzle } from "../clients.mjs"
 import { actionsTable, attachmentsTable, usersTable } from "../schema.mjs"
-import { sql, desc, asc, eq, SQL } from "drizzle-orm"
+import { sql, desc, asc, eq, SQL, and } from "drizzle-orm"
 
 export type ActionWithImages = typeof actionsTable.$inferSelect & {
   images: (typeof attachmentsTable.$inferSelect)[]
@@ -31,7 +31,13 @@ export async function actionsWithImages({
     .from(actionsTable)
     .where(where)
     .orderBy(orderBy)
-    .leftJoin(attachmentsTable, eq(actionsTable.id, attachmentsTable.actionId))
+    .leftJoin(
+      attachmentsTable,
+      and(
+        eq(actionsTable.id, attachmentsTable.actionId),
+        eq(actionsTable.hidden, false),
+      ),
+    )
 
   const set = new Map<number, ActionWithImages>()
 
