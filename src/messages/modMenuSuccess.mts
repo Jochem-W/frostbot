@@ -11,13 +11,17 @@ import { EmbedBuilder, userMention } from "discord.js"
 type Data =
   | {
       state: ModMenuState
+      dmStatus?: never
+      actionStatus?: never
+      insertStatus?: never
+      insertImagesStatus?: never
     }
   | {
       state: ModMenuState
       dmStatus: DmStatus
       actionStatus: ActionStatus
       insertStatus: InsertStatus
-      insertImagesStatus?: InsertImagesStatus
+      insertImagesStatus?: InsertImagesStatus | null
     }
 
 export function modMenuSuccess(data: Data) {
@@ -50,7 +54,7 @@ export function modMenuSuccess(data: Data) {
     insertImagesStatus,
     state: { guild },
   } = data
-  if (actionStatus.success) {
+  if (actionStatus && actionStatus.success) {
     if (dmStatus.success && insertStatus.success) {
       embed.setTitle("Success!").setColor(Colours.green[500])
     } else {
@@ -82,7 +86,7 @@ export function modMenuSuccess(data: Data) {
     })
   }
 
-  if (!actionStatus.success) {
+  if (actionStatus && !actionStatus.success) {
     let value
     switch (actionStatus.error) {
       case "not_in_server":
@@ -108,7 +112,7 @@ export function modMenuSuccess(data: Data) {
     })
   }
 
-  if (!insertStatus.success) {
+  if (insertStatus && !insertStatus.success) {
     embed.addFields({
       name: "❌ Database insertion failed",
       value:
@@ -116,7 +120,7 @@ export function modMenuSuccess(data: Data) {
     })
   }
 
-  if (!insertImagesStatus?.success) {
+  if (insertImagesStatus && !insertImagesStatus.success) {
     embed.addFields({
       name: "❌ Image insertion failed",
       value:

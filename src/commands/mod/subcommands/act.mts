@@ -177,7 +177,7 @@ export const ActSubcommand = slashSubcommand({
     }
 
     const insertStatus = await tryInsert({ state, actionStatus, dmStatus })
-    let insertImagesStatus
+    let insertImagesStatus = null
     if (insertStatus.success && fulfilled) {
       insertImagesStatus = await tryInsertImages(
         interaction.client,
