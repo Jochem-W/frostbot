@@ -1,5 +1,6 @@
 import { Drizzle } from "../clients.mjs"
 import { Colours } from "../models/colours.mjs"
+import { Config } from "../models/config.mjs"
 import { contextMenuCommand } from "../models/contextMenuCommand.mjs"
 import { usersTable } from "../schema.mjs"
 import { levelForTotalXp, totalXpForLevel } from "../util/xp.mjs"
@@ -42,6 +43,10 @@ export const RestoreLevelCommand = contextMenuCommand({
   defaultMemberPermissions: null,
   dmPermission: false,
   async handle(interaction, message) {
+    if (!interaction.inCachedGuild()) {
+      return
+    }
+
     const parsed = await model.safeParseAsync(
       message.embeds[0]?.description?.match(regex)?.groups,
     )
@@ -143,6 +148,13 @@ export const RestoreLevelCommand = contextMenuCommand({
       })
       .onConflictDoUpdate({ target: usersTable.id, set: { xp } })
       .returning()
+
+    await interaction.member.roles.add(
+      [...Config.levelRoles.entries()]
+        .filter(([level]) => parseInt(level) <= parsedLevel)
+        .map(([, roleId]) => roleId)
+        .filter((roleId) => !interaction.member.roles.cache.has(roleId)),
+    )
 
     await reply(interaction, {
       ephemeral: true,
