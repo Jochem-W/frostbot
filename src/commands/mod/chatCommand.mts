@@ -3,6 +3,7 @@ import { ActSubcommand } from "./subcommands/act.mjs"
 import { AttachSubcommand } from "./subcommands/attach.mjs"
 import { HistorySubcommand } from "./subcommands/history.mjs"
 import { MenuSubcommand } from "./subcommands/menu.mjs"
+import { RevokeSubcommand } from "./subcommands/revoke.mjs"
 import { PermissionFlagsBits } from "discord.js"
 
 export const ModCommand = slashCommand({
@@ -16,5 +17,6 @@ export const ModCommand = slashCommand({
     AttachSubcommand,
     HistorySubcommand,
     MenuSubcommand,
+    RevokeSubcommand,
   ],
 })

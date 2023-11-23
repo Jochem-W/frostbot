@@ -17,6 +17,9 @@ import {
   TimestampStyles,
   userMention,
   type User,
+  escapeStrikethrough,
+  strikethrough,
+  EmbedAuthorOptions,
 } from "discord.js"
 import { eq, asc } from "drizzle-orm"
 import { Duration } from "luxon"
@@ -103,10 +106,17 @@ export async function modHistory(user: User, guild: Guild) {
 
     mainEmbed
       .setAuthor(await formatActionAsAuthor(user.client, entry))
-      .setDescription(entry.body)
       .setFooter({ text: footer })
       .setTimestamp(entry.timestamp)
       .setColor(getColour(entry.action))
+
+    if (entry.body) {
+      mainEmbed.setDescription(
+        entry.revoked
+          ? strikethrough(escapeStrikethrough(entry.body))
+          : entry.body,
+      )
+    }
 
     if (notice.length > 0) {
       mainEmbed.setFields({ name: "⚠️ Notice", value: notice.join("\n") })
@@ -127,52 +137,60 @@ export async function modHistory(user: User, guild: Guild) {
 
 async function formatActionAsAuthor(
   client: Client<true>,
-  { action, staffId, timeout }: typeof actionsTable.$inferSelect,
+  { action, staffId, timeout, revoked }: typeof actionsTable.$inferSelect,
 ) {
   const staff = await client.users.fetch(staffId)
 
+  let author: EmbedAuthorOptions
   switch (action) {
     case "unban":
-      return {
+      author = {
         name: `Unbanned by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
       }
+      break
     case "kick":
-      return {
+      author = {
         name: `Kicked by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
       }
+      break
     case "warn":
-      return {
+      author = {
         name: `Warned by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
       }
+      break
     case "timeout":
-      return {
+      author = {
         name: `Timed out for ${formatDurationAsSingleUnit(
           Duration.fromMillis(timeout ?? 0).shiftToAll(),
         )} by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
       }
+      break
     case "ban":
-      return {
+      author = {
         name: `Banned by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
       }
+      break
     case "note":
-      return {
+      author = {
         name: `Note created by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
       }
+      break
     case "restrain":
-      return {
+      author = {
         name: `Restrained by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
       }
+      break
     case "untimeout":
-      return {
+      author = {
         name: `Timeout removed by ${staff.displayName}`,
-        iconURL: staff.displayAvatarURL(),
       }
+      break
   }
+
+  author.iconURL = staff.displayAvatarURL()
+  if (revoked) {
+    author.name = `[Revoked] ${author.name}`
+  }
+
+  return author
 }
