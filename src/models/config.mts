@@ -13,6 +13,7 @@ const model = z.object({
     curve: z.number(),
     dropoff: z.number(),
     time: z.number(),
+    enabled: z.boolean(),
   }),
   url: z.object({ internal: z.string().url(), external: z.string().url() }),
   s3: z.object({

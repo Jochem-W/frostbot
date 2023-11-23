@@ -24,6 +24,12 @@ const discord = new Client({
 })
 
 for (const handler of Handlers) {
+  if (!handler.enabled) {
+    continue
+  }
+
+  console.log("Registering handler for", handler.event)
+
   if (handler.once) {
     discord.once(handler.event, async function handlerWrapper(...args) {
       try {
