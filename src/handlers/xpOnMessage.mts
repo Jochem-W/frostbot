@@ -28,20 +28,17 @@ export const XpOnMessage = handler({
 
     times.set(message.author.id, true)
 
-    const difference = Math.max(
-      Math.floor(
+    const difference = Math.floor(
+      Math.max(
         Math.min(
-          (1 + Config.xp.curve) ** message.content.length,
+          Math.E ** (Config.xp.curve * message.content.length),
           Config.xp.max,
-          Config.xp.max *
-            (1 - Config.xp.curve) **
-              (message.content.length - Config.xp.dropoff),
+          Math.E **
+            (-Config.xp.curve * (message.content.length - Config.xp.dropoff)),
         ),
+        Config.xp.min,
       ),
-      Config.xp.min,
     )
-
-    console.log(difference)
 
     const [user] = await Drizzle.insert(usersTable)
       .values({
