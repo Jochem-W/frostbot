@@ -61,9 +61,7 @@ export const RestoreLevelCommand = contextMenuCommand({
         embeds: [
           new EmbedBuilder()
             .setTitle("Invalid message")
-            .setDescription(
-              "This message doesn't contain a valid level-up message!",
-            )
+            .setDescription("This isn't a valid level-up message!")
             .setColor(Colours.red[500]),
         ],
         ephemeral: true,
