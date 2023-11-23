@@ -29,6 +29,8 @@ import {
   bold,
   italic,
   userMention,
+  strikethrough,
+  escapeStrikethrough,
 } from "discord.js"
 import { desc, eq, sql } from "drizzle-orm"
 
@@ -408,18 +410,29 @@ function formatActionForEntrySummary(
 
 function entrySummary(
   { staff }: ModMenuState,
-  { action, timestamp, body }: typeof actionsTable.$inferSelect,
+  { action, timestamp, body, revoked }: typeof actionsTable.$inferSelect,
 ) {
-  let line = `- ${bold(formatActionForEntrySummary(action))} ${time(
+  let line = `${bold(formatActionForEntrySummary(action))} ${time(
     timestamp,
     TimestampStyles.RelativeTime,
   )} by ${userMention(staff.id)}`
+  if (revoked) {
+    line = `${strikethrough(escapeStrikethrough(line))} [Revoked]`
+  }
+
+  line = `- ${line}`
+
   if (!body) {
-    return line
+    return `- ${line}`
   }
 
   if (body.length <= bodyLength) {
-    line += `\n - ${italic(body)}`
+    let appendBody: string = italic(body)
+    if (revoked) {
+      appendBody = strikethrough(escapeStrikethrough(body))
+    }
+
+    line += `\n - ${appendBody}`
     return line
   }
 
