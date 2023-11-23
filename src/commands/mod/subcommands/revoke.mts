@@ -9,7 +9,7 @@ import {
   escapeStrikethrough,
   strikethrough,
 } from "discord.js"
-import { eq, like } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 
 export const RevokeSubcommand = slashSubcommand({
   name: "revoke",
@@ -27,7 +27,7 @@ export const RevokeSubcommand = slashSubcommand({
           userId: actionsTable.userId,
         })
           .from(actionsTable)
-          .where(like(actionsTable.id, `%${value}%`))
+          .where(sql`${actionsTable.id}::TEXT LIKE '%${value}%'`)
           .limit(25)
 
         return matches.map((action) => {
