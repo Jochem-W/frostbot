@@ -9,8 +9,8 @@ dependencies:
     specifier: ^3.456.0
     version: 3.456.0
   '@aws-sdk/lib-storage':
-    specifier: ^3.456.0
-    version: 3.456.0(@aws-sdk/client-s3@3.456.0)
+    specifier: ^3.458.0
+    version: 3.458.0(@aws-sdk/client-s3@3.456.0)
   '@isaacs/ttlcache':
     specifier: ^1.4.1
     version: 1.4.1
@@ -415,8 +415,8 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@aws-sdk/lib-storage@3.456.0(@aws-sdk/client-s3@3.456.0):
-    resolution: {integrity: sha512-S1h7DcH8u+CL6kobVgorgm0X0u+gQwjefbDuRrPF0qtpzvPprabRe4t3yt4VKuhjvegxKMVL/sdw817gLGoPdA==}
+  /@aws-sdk/lib-storage@3.458.0(@aws-sdk/client-s3@3.456.0):
+    resolution: {integrity: sha512-wSP/sjG+SH6YHQINLePzu6fgeTo4ibqQSpnvNF52lJWJY/1lRE4qYuLQFLH2WEWG3FuDzEIsJiu3CwHm0cc6mw==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.0.0
