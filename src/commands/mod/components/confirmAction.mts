@@ -22,12 +22,14 @@ export const confirmAction = staticComponent({
       return
     }
 
+    await interaction.deferUpdate()
+
     const state = await modMenuState(interaction)
     const { guild, target, action } = state
 
     const permissions = await getPermissions(guild, interaction.member, target)
     if (!permissions[action]) {
-      await interaction.update(
+      await interaction.editReply(
         modMenuSuccess({
           state,
         }),
@@ -51,7 +53,7 @@ export const confirmAction = staticComponent({
 
     const insertStatus = await tryInsert({ state, dmStatus, actionStatus })
 
-    await interaction.update(
+    await interaction.editReply(
       modMenuSuccess({
         state,
         dmStatus,
