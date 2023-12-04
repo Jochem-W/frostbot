@@ -1,3 +1,4 @@
+import { AddImageToLog } from "./handlers/addImageToLog.mjs"
 import { InteractionHandler } from "./handlers/interactionHandler.mjs"
 import { LevelRolesOnJoin } from "./handlers/levelRolesOnJoin.mjs"
 import { LogBans } from "./handlers/logBans.mjs"
@@ -28,4 +29,5 @@ export const Handlers: Handler<keyof ClientEvents>[] = [
   LogTimeout,
   LogUnbans,
   LogUntimeout,
+  AddImageToLog,
 ]
