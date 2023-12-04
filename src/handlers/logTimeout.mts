@@ -35,7 +35,7 @@ async function getAuditLogEntry(member: GuildMember) {
 export const LogTimeout = handler({
   event: "guildMemberUpdate",
   once: false,
-  async handle(oldMember, newMember) {
+  async handle(_, newMember) {
     if (newMember.user.bot) {
       return
     }
@@ -44,16 +44,10 @@ export const LogTimeout = handler({
       return
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await new Promise((resolve) => setTimeout(resolve, 5000))
 
     const auditLog = await getAuditLogEntry(newMember)
     if (!auditLog) {
-      if (!oldMember.partial && !oldMember.communicationDisabledUntil) {
-        throw new Error(
-          `Couldn't find an audit log entry for the timeout of ${newMember.id}`,
-        )
-      }
-
       return
     }
 
