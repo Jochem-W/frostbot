@@ -99,6 +99,8 @@ export const ActSubcommand = slashSubcommand({
       return
     }
 
+    await interaction.deferReply({ ephemeral: true })
+
     const filteredAttachments = attachments.filter(
       (attachment): attachment is Attachment => attachment !== null,
     )
@@ -144,7 +146,7 @@ export const ActSubcommand = slashSubcommand({
       state.target,
     )
     if (!permissions[action]) {
-      await interaction.reply(
+      await interaction.editReply(
         modMenuSuccess({
           state,
         }),
@@ -186,7 +188,7 @@ export const ActSubcommand = slashSubcommand({
       )
     }
 
-    await interaction.reply(
+    await interaction.editReply(
       modMenuSuccess({
         state,
         dmStatus,
