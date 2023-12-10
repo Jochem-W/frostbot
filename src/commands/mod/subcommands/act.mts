@@ -2,6 +2,7 @@ import { Drizzle } from "../../../clients.mjs"
 import { ModMenuState } from "../../../messages/modMenu.mjs"
 import { modMenuLog } from "../../../messages/modMenuLog.mjs"
 import { modMenuSuccess } from "../../../messages/modMenuSuccess.mjs"
+import { Colours } from "../../../models/colours.mjs"
 import { Config } from "../../../models/config.mjs"
 import { slashSubcommand } from "../../../models/slashCommand.mjs"
 import { actionLogsTable, insertActionsSchema } from "../../../schema.mjs"
@@ -18,7 +19,7 @@ import {
   tryInsert,
   tryInsertImages,
 } from "../shared.mjs"
-import { Attachment, ChannelType } from "discord.js"
+import { Attachment, ChannelType, EmbedBuilder } from "discord.js"
 import { Duration } from "luxon"
 import { z } from "zod"
 
@@ -99,14 +100,25 @@ export const ActSubcommand = slashSubcommand({
       return
     }
 
-    await interaction.deferReply({ ephemeral: true })
-
     const filteredAttachments = attachments.filter(
       (attachment): attachment is Attachment => attachment !== null,
     )
     if (!attachmentsAreImages(filteredAttachments)) {
-      throw new Error("Some of the attachments aren't valid images")
+      await interaction.reply({
+        ephemeral: true,
+        embeds: [
+          new EmbedBuilder()
+            .setAuthor({ name: "Invalid attachments" })
+            .setDescription(
+              "One or more of the supplied attachments isn't a valid image.",
+            )
+            .setColor(Colours.red[500]),
+        ],
+      })
+      return
     }
+
+    await interaction.deferReply({ ephemeral: true })
 
     const [actionName, actionExtra] = rawAction.split(":")
     const action = await insertActionsSchema.shape.action.parseAsync(actionName)
