@@ -156,7 +156,6 @@ export const ActSubcommand = slashSubcommand({
 
     let fulfilled
     if (filteredAttachments.length > 0) {
-      await interaction.deferReply()
       let rejected
       ;({ fulfilled, rejected } = await uploadAttachments(filteredAttachments))
       if (rejected.length > 0) {
