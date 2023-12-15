@@ -66,7 +66,6 @@ export const RevokeSubcommand = slashSubcommand({
       name: "hide",
       description: "Completely hide the action log (not recommended)",
       type: "boolean",
-      required: false,
     },
   ],
   async handle(interaction, id, hide) {

@@ -35,7 +35,7 @@ type SlashOptionSharedData<Required extends boolean> = {
   nameLocalizations?: LocalizationMap<Lowercase<string>>
   description: string
   descriptionLocalizations?: LocalizationMap<string>
-  required: Required
+  required?: Required
 }
 
 type SlashOptionAutocompleteHandler<
@@ -139,7 +139,7 @@ type SlashOptionValueType<Type extends SlashOptionTypeSimple> =
 
 type SlashOptionValueTypeWithRequired<
   Type extends SlashOptionTypeSimple,
-  Required extends boolean,
+  Required extends boolean | undefined,
 > = Required extends true
   ? SlashOptionValueType<Type>
   : SlashOptionValueType<Type> | null
@@ -214,10 +214,11 @@ function applyShared<Builder extends ApplicationCommandOptionBase>(
   option: SlashOptionData<boolean>,
   builder: Builder,
 ) {
-  builder
-    .setName(option.name)
-    .setDescription(option.description)
-    .setRequired(option.required)
+  builder.setName(option.name).setDescription(option.description)
+
+  if (option.required !== undefined) {
+    builder.setRequired(option.required)
+  }
 
   if (option.nameLocalizations) {
     builder.setNameLocalizations(option.nameLocalizations)

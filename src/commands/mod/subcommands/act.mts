@@ -73,25 +73,21 @@ export const ActSubcommand = slashSubcommand({
     {
       name: "image1",
       type: "attachment",
-      required: false,
       description: "Image to add to the log",
     },
     {
       name: "image2",
       type: "attachment",
-      required: false,
       description: "Image to add to the log",
     },
     {
       name: "image3",
       type: "attachment",
-      required: false,
       description: "Image to add to the log",
     },
     {
       name: "image4",
       type: "attachment",
-      required: false,
       description: "Image to add to the log",
     },
   ],

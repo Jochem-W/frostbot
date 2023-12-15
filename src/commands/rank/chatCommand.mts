@@ -12,7 +12,6 @@ export const RankCommand = slashCommand({
       name: "user",
       description: "Target user",
       type: "user",
-      required: false,
     },
   ],
   async handle(interaction, user) {
