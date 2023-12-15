@@ -9,7 +9,6 @@ export const XpCommand = slashCommand({
   description: "Set a user's XP",
   dmPermission: false,
   defaultMemberPermissions: PermissionFlagsBits.Administrator,
-  nsfw: false,
   options: [
     { name: "user", description: "Target user", type: "user", required: true },
     { name: "value", description: "XP value", type: "integer", required: true },

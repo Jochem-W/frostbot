@@ -181,7 +181,7 @@ type SlashCommandData<Options extends SlashOptionData<boolean>[]> =
   SlashCommandSharedData & {
     dmPermission: boolean
     defaultMemberPermissions: Permissions | bigint | number | null
-    nsfw: boolean
+    nsfw?: boolean
   } & (
       | {
           options?: [...Options]

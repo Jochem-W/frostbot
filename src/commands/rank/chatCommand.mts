@@ -6,7 +6,6 @@ export const RankCommand = slashCommand({
   description: "View your own rank card, or that of another user.",
   defaultMemberPermissions: null,
   dmPermission: true,
-  nsfw: false,
   options: [
     {
       name: "user",

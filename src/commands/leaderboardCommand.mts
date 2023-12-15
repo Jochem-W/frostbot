@@ -8,7 +8,6 @@ export const LeaderboardCommand = slashCommand({
   description: "View the leaderboard",
   defaultMemberPermissions: null,
   dmPermission: true,
-  nsfw: false,
   async handle(interaction) {
     let { guild } = interaction
     if (!guild) {
