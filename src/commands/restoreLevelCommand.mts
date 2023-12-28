@@ -34,7 +34,16 @@ async function reply(
   data: InteractionReplyOptions & MessageCreateOptions,
 ) {
   await interaction.reply(data)
-  await interaction.user.send(data)
+  try {
+    await interaction.user.send(data)
+  } catch (e) {
+    if (
+      !(e instanceof DiscordAPIError) ||
+      e.code !== RESTJSONErrorCodes.CannotSendMessagesToThisUser
+    ) {
+      throw e
+    }
+  }
 }
 
 export const RestoreLevelCommand = contextMenuCommand({
