@@ -400,7 +400,7 @@ export function slashCommand<Data extends SlashOptionData<boolean>[]>(
     .setDescription(description)
     .setDMPermission(data.dmPermission)
     .setDefaultMemberPermissions(data.defaultMemberPermissions)
-    .setNSFW(data.nsfw)
+    .setNSFW(data.nsfw === true)
 
   if (nameLocalizations) {
     commandBuilder.setNameLocalizations(nameLocalizations)
