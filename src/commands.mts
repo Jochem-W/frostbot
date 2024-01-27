@@ -4,6 +4,7 @@ import { ModUserContextCommand } from "./commands/mod/userContextCommand.mjs"
 import { RankCommand } from "./commands/rank/chatCommand.mjs"
 import { RankContextCommand } from "./commands/rank/contextMenuCommand.mjs"
 import { RestoreLevelCommand } from "./commands/restoreLevelCommand.mjs"
+import { ToggleInvitesCommand } from "./commands/toggleInvitesCommand.mjs"
 import { XpCommand } from "./commands/xpCommand.mjs"
 import type { Command } from "./models/command.mjs"
 import type { ApplicationCommandType, Snowflake } from "discord.js"
@@ -13,6 +14,7 @@ export const SlashCommands: Command<ApplicationCommandType.ChatInput>[] = [
   RankCommand,
   XpCommand,
   LeaderboardCommand,
+  ToggleInvitesCommand,
 ]
 export const MessageContextMenuCommands: Command<ApplicationCommandType.Message>[] =
   [RestoreLevelCommand]
