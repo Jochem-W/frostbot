@@ -8,7 +8,7 @@ import { eq, sql } from "drizzle-orm"
 import puppeteer from "puppeteer"
 
 const browser = await puppeteer.launch({
-  headless: "new",
+  headless: true,
   defaultViewport: { width: 1024, height: 384 },
   args: ["--no-sandbox"],
 })
