@@ -1,0 +1,26 @@
+{
+  "guild": "",
+  "channels": {
+    "error": "",
+    "mod": ""
+  },
+  "levelRoles": {},
+  "xp": {
+    "max": 5,
+    "min": 1,
+    "curve": 0.04,
+    "dropoff": 100,
+    "time": 30,
+    "enabled": true
+  },
+  "s3": {
+    "bucket": "",
+    "bucketUrl": "",
+    "endpoint": "",
+    "region": ""
+  },
+  "url": {
+    "internal": "",
+    "external": ""
+  }
+}
