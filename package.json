@@ -16,7 +16,7 @@
     "@types/luxon": "^3.4.2",
     "camelcase-keys": "^9.1.3",
     "discord.js": "^14.14.1",
-    "drizzle-orm": "^0.30.6",
+    "drizzle-orm": "^0.30.9",
     "drizzle-zod": "^0.5.1",
     "luxon": "^3.4.4",
     "postgres": "^3.4.4",
