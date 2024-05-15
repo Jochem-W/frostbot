@@ -20,7 +20,7 @@
     "drizzle-zod": "^0.5.1",
     "luxon": "^3.4.4",
     "postgres": "^3.4.4",
-    "puppeteer": "^22.6.1",
+    "puppeteer": "^22.8.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {
