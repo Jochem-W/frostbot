@@ -92,6 +92,7 @@ export const LogTimeout = handler({
               .as("seconds"),
           ) * 1000,
         body: auditLog.reason,
+        deleteMessageSeconds: 0,
       })
       .returning()
 

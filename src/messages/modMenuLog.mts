@@ -251,6 +251,8 @@ export async function modMenuLogFromDb(
       staff: staffMember ?? staffUser,
       timestamp: data.timestamp,
       dm: data.dm,
+      timeout: 0,
+      deleteMessageSeconds: 0,
     },
   }
 
@@ -258,17 +260,13 @@ export async function modMenuLogFromDb(
     params.images = data.images
   }
 
-  if (data.deleteMessageSeconds !== null) {
-    params.state.deleteMessageSeconds = data.deleteMessageSeconds
-  }
+  params.state.deleteMessageSeconds = data.deleteMessageSeconds
 
   if (data.body) {
     params.state.body = data.body
   }
 
-  if (data.timeout) {
-    params.state.timeout = data.timeout
-  }
+  params.state.timeout = data.timeout
 
   if (targetMember) {
     params.state.target = targetMember

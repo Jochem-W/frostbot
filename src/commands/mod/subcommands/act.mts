@@ -131,6 +131,8 @@ export const ActSubcommand = slashSubcommand({
       dm,
       staff: interaction.member,
       timestamp: interaction.createdAt,
+      timeout: 0,
+      deleteMessageSeconds: 0,
     }
 
     switch (action) {

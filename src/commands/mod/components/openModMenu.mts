@@ -32,6 +32,7 @@ export const openModMenu = staticComponent({
       target,
       staff: member,
       deleteMessageSeconds: 0,
+      timeout: 0,
     }
 
     const targetMember = await tryFetchMember(guild, target)

@@ -26,6 +26,7 @@ export const MenuSubcommand = slashSubcommand({
       action: "restrain",
       timestamp: interaction.createdAt,
       deleteMessageSeconds: 0,
+      timeout: 0,
     }
 
     const targetMember = await tryFetchMember(guild, target)

@@ -46,10 +46,10 @@ export type ModMenuState = {
   body?: string
   dm: boolean
   staff: User | GuildMember
-  timeout?: number
+  timeout: number
   timestamp: Date
   timedOutUntil?: Date
-  deleteMessageSeconds?: number
+  deleteMessageSeconds: number
 }
 
 export async function modMenu(state: ModMenuState) {
@@ -236,7 +236,7 @@ function formatActionAsQuestion({
             .setOptions(
               messageDeleteOptions.map((data) =>
                 new StringSelectMenuOptionBuilder(data).setDefault(
-                  data.value === deleteMessageSeconds?.toString(10),
+                  data.value === deleteMessageSeconds.toString(10),
                 ),
               ),
             )

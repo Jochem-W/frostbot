@@ -58,6 +58,8 @@ export const LogUnbans = handler({
         dmSuccess: true,
         actionSucess: true,
         body: auditLog.reason,
+        timeout: 0,
+        deleteMessageSeconds: 0,
       })
       .returning()
 

@@ -96,6 +96,8 @@ export const LogUntimeout = handler({
         actionSucess: true,
         timedOutUntil: DateTime.fromISO(change.old).toJSDate(),
         body: auditLog.reason,
+        timeout: 0,
+        deleteMessageSeconds: 0,
       })
       .returning()
 

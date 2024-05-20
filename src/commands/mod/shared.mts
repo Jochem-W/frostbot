@@ -174,6 +174,7 @@ export async function modMenuState({
     staff: member,
     timestamp: createdAt,
     deleteMessageSeconds: 0,
+    timeout: 0,
   }
 
   const targetMember = await tryFetchMember(guild, target)
@@ -357,9 +358,7 @@ export async function tryAction({
         await target.timeout(timeout)
         break
       case "ban":
-        await guild.bans.create(target, {
-          deleteMessageSeconds: deleteMessageSeconds ?? 0,
-        })
+        await guild.bans.create(target, { deleteMessageSeconds })
         break
       case "note":
         break
@@ -421,11 +420,11 @@ export async function tryInsert({
           body: body ?? null,
           dm,
           staffId: staff.id,
-          timeout: timeout ?? null,
+          timeout,
           timestamp,
           dmSuccess: dmStatus.success,
           actionSucess: actionStatus.success,
-          deleteMessageSeconds: deleteMessageSeconds ?? null,
+          deleteMessageSeconds,
           timedOutUntil: action === "untimeout" ? timedOutUntil ?? null : null,
         },
       ])

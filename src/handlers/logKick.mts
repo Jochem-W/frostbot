@@ -65,6 +65,8 @@ export const LogKick = handler({
         dmSuccess: true,
         actionSucess: true,
         body: auditLog.reason,
+        deleteMessageSeconds: 0,
+        timeout: 0,
       })
       .returning()
 
