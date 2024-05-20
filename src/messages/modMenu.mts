@@ -291,7 +291,7 @@ function actionControls(state: ModMenuState, permissions: ModMenuPermissions) {
     return {
       embeds: [
         new EmbedBuilder()
-          .setDescription("Please select an option.")
+          .setDescription("Select an option.")
           .setColor(Colours.neutral[400]),
       ],
       components,
@@ -313,7 +313,7 @@ function actionControls(state: ModMenuState, permissions: ModMenuPermissions) {
 
   const errors = []
   if ((dm || action === "note") && !body) {
-    let text = `- Please set a ${action === "note" ? "body" : "reason"}`
+    let text = `- Set a ${action === "note" ? "body" : "reason"}`
     if (action !== "warn" && action !== "note") {
       text += ", or don't send a DM"
     }
@@ -322,7 +322,7 @@ function actionControls(state: ModMenuState, permissions: ModMenuPermissions) {
   }
 
   if (action === "timeout" && !timeout) {
-    errors.push(`- Please select a timeout duration.`)
+    errors.push(`- Select a timeout duration.`)
   }
 
   if (errors.length > 0) {
