@@ -1,0 +1,277 @@
+{
+  "id": "948ed627-89d9-4c2c-8d76-f6836ec94a3d",
+  "prevId": "acb4e850-cfbe-407a-ad06-3168eaf4fac3",
+  "version": "6",
+  "dialect": "postgresql",
+  "tables": {
+    "public.action_logs": {
+      "name": "action_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "action_id": {
+          "name": "action_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "channel_id": {
+          "name": "channel_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "action_logs_action_id_actions_id_fk": {
+          "name": "action_logs_action_id_actions_id_fk",
+          "tableFrom": "action_logs",
+          "tableTo": "actions",
+          "columnsFrom": [
+            "action_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "action_logs_message_id_unique": {
+          "name": "action_logs_message_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "message_id"
+          ]
+        }
+      }
+    },
+    "public.actions": {
+      "name": "actions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "guild_id": {
+          "name": "guild_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action": {
+          "name": "action",
+          "type": "actions_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dm": {
+          "name": "dm",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "staff_id": {
+          "name": "staff_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timeout": {
+          "name": "timeout",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dm_success": {
+          "name": "dm_success",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action_success": {
+          "name": "action_success",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "delete_message_seconds": {
+          "name": "delete_message_seconds",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timed_out_until": {
+          "name": "timed_out_until",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "revoked": {
+          "name": "revoked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "hidden": {
+          "name": "hidden",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.attachments": {
+      "name": "attachments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action_id": {
+          "name": "action_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "attachments_action_id_actions_id_fk": {
+          "name": "attachments_action_id_actions_id_fk",
+          "tableFrom": "attachments",
+          "tableTo": "actions",
+          "columnsFrom": [
+            "action_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "xp": {
+          "name": "xp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "avatar": {
+          "name": "avatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "discriminator": {
+          "name": "discriminator",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "member": {
+          "name": "member",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {
+    "public.actions_enum": {
+      "name": "actions_enum",
+      "schema": "public",
+      "values": [
+        "unban",
+        "kick",
+        "warn",
+        "timeout",
+        "ban",
+        "note",
+        "restrain",
+        "untimeout"
+      ]
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
