@@ -210,12 +210,6 @@ export const ActSubcommand = slashSubcommand({
       }),
     )
 
-    const channel = await fetchChannel(
-      interaction.client,
-      Config.channels.mod,
-      ChannelType.GuildText,
-    )
-
     const params: Parameters<typeof modMenuLog>[0] = {
       state,
       dmStatus,
@@ -227,13 +221,28 @@ export const ActSubcommand = slashSubcommand({
       params.images = insertImagesStatus.data
     }
 
-    const message = await channel.send(modMenuLog(params))
-    if (insertStatus.success) {
-      await Drizzle.insert(actionLogsTable).values({
-        messageId: message.id,
-        channelId: message.channelId,
-        actionId: insertStatus.id,
-      })
+    for (const channelId of Config.channels.mod) {
+      const channel = await fetchChannel(
+        interaction.client,
+        channelId,
+        ChannelType.GuildText,
+      )
+
+      if (
+        state.guild.id !== channel.guild.id &&
+        !channel.guild.members.cache.has(state.target.id)
+      ) {
+        continue
+      }
+
+      const message = await channel.send(modMenuLog(params))
+      if (insertStatus.success) {
+        await Drizzle.insert(actionLogsTable).values({
+          messageId: message.id,
+          channelId: message.channelId,
+          actionId: insertStatus.id,
+        })
+      }
     }
   },
 })

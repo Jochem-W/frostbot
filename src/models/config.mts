@@ -5,7 +5,7 @@ import { readFile } from "fs/promises"
 import { z } from "zod"
 
 const model = z.object({
-  channels: z.object({ error: z.string().optional(), mod: z.string() }),
+  channels: z.object({ error: z.string().optional(), mod: z.string().array() }),
   levelRoles: z
     .record(z.string())
     .transform((arg) => new Map(Object.entries(arg))),

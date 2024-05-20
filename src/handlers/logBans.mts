@@ -67,19 +67,29 @@ export const LogBans = handler({
       throw new Error(`Couldn't create a log for the ban of ${ban.user.id}`)
     }
 
-    const channel = await fetchChannel(
-      ban.client,
-      Config.channels.mod,
-      ChannelType.GuildText,
-    )
-    const message = await channel.send(
-      await modMenuLogFromDb(ban.client, entry),
-    )
+    for (const channelId of Config.channels.mod) {
+      const channel = await fetchChannel(
+        ban.client,
+        channelId,
+        ChannelType.GuildText,
+      )
 
-    await Drizzle.insert(actionLogsTable).values({
-      messageId: message.id,
-      channelId: channel.id,
-      actionId: entry.id,
-    })
+      if (
+        ban.guild.id !== channel.guild.id &&
+        !channel.guild.members.cache.has(ban.user.id)
+      ) {
+        continue
+      }
+
+      const message = await channel.send(
+        await modMenuLogFromDb(ban.client, entry),
+      )
+
+      await Drizzle.insert(actionLogsTable).values({
+        messageId: message.id,
+        channelId,
+        actionId: entry.id,
+      })
+    }
   },
 })

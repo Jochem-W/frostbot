@@ -74,19 +74,29 @@ export const LogKick = handler({
       throw new Error(`Couldn't create a log for the kick of ${member.id}`)
     }
 
-    const channel = await fetchChannel(
-      member.client,
-      Config.channels.mod,
-      ChannelType.GuildText,
-    )
-    const message = await channel.send(
-      await modMenuLogFromDb(member.client, entry),
-    )
+    for (const channelId of Config.channels.mod) {
+      const channel = await fetchChannel(
+        member.client,
+        channelId,
+        ChannelType.GuildText,
+      )
 
-    await Drizzle.insert(actionLogsTable).values({
-      messageId: message.id,
-      channelId: channel.id,
-      actionId: entry.id,
-    })
+      if (
+        member.guild.id !== channel.guild.id &&
+        !channel.guild.members.cache.has(member.id)
+      ) {
+        continue
+      }
+
+      const message = await channel.send(
+        await modMenuLogFromDb(member.client, entry),
+      )
+
+      await Drizzle.insert(actionLogsTable).values({
+        messageId: message.id,
+        channelId,
+        actionId: entry.id,
+      })
+    }
   },
 })

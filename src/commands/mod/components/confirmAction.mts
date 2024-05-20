@@ -65,21 +65,30 @@ export const confirmAction = staticComponent({
       }),
     )
 
-    const logs = await fetchChannel(
-      interaction.client,
-      Config.channels.mod,
-      ChannelType.GuildText,
-    )
+    for (const channelId of Config.channels.mod) {
+      const logs = await fetchChannel(
+        interaction.client,
+        channelId,
+        ChannelType.GuildText,
+      )
 
-    const message = await logs.send(
-      modMenuLog({ state, dmStatus, actionStatus, insertStatus }),
-    )
-    if (insertStatus.success) {
-      await Drizzle.insert(actionLogsTable).values({
-        messageId: message.id,
-        channelId: message.channelId,
-        actionId: insertStatus.id,
-      })
+      if (
+        state.guild.id !== logs.guild.id &&
+        !logs.guild.members.cache.has(state.target.id)
+      ) {
+        continue
+      }
+
+      const message = await logs.send(
+        modMenuLog({ state, dmStatus, actionStatus, insertStatus }),
+      )
+      if (insertStatus.success) {
+        await Drizzle.insert(actionLogsTable).values({
+          messageId: message.id,
+          channelId,
+          actionId: insertStatus.id,
+        })
+      }
     }
   },
 })

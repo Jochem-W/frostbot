@@ -102,19 +102,29 @@ export const LogTimeout = handler({
       )
     }
 
-    const channel = await fetchChannel(
-      newMember.client,
-      Config.channels.mod,
-      ChannelType.GuildText,
-    )
-    const message = await channel.send(
-      await modMenuLogFromDb(newMember.client, entry),
-    )
+    for (const channelId of Config.channels.mod) {
+      const channel = await fetchChannel(
+        newMember.client,
+        channelId,
+        ChannelType.GuildText,
+      )
 
-    await Drizzle.insert(actionLogsTable).values({
-      messageId: message.id,
-      channelId: channel.id,
-      actionId: entry.id,
-    })
+      if (
+        newMember.guild.id !== channel.guild.id &&
+        !channel.guild.members.cache.has(newMember.id)
+      ) {
+        continue
+      }
+
+      const message = await channel.send(
+        await modMenuLogFromDb(newMember.client, entry),
+      )
+
+      await Drizzle.insert(actionLogsTable).values({
+        messageId: message.id,
+        channelId,
+        actionId: entry.id,
+      })
+    }
   },
 })
