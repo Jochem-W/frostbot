@@ -1,3 +1,6 @@
+/**
+ * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
+ */
 import { modMenu } from "../../messages/modMenu.mjs"
 import { modal, modalInput } from "../../models/modal.mjs"
 import { modMenuState } from "./shared.mjs"

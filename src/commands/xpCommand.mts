@@ -1,3 +1,6 @@
+/**
+ * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
+ */
 import { Drizzle } from "../clients.mjs"
 import { InteractionContext, InstallationContext } from "../models/command.mjs"
 import { slashCommand } from "../models/slashCommand.mjs"

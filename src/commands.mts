@@ -1,3 +1,6 @@
+/**
+ * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
+ */
 import { LeaderboardCommand } from "./commands/leaderboardCommand.mjs"
 import { ModCommand } from "./commands/mod/chatCommand.mjs"
 import { ModUserContextCommand } from "./commands/mod/userContextCommand.mjs"

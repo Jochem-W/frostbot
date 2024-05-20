@@ -1,3 +1,6 @@
+/**
+ * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
+ */
 import { staticComponent } from "../../../models/component.mjs"
 import { setReasonModal, setBodyModal } from "../modals.mjs"
 import { modMenuState } from "../shared.mjs"

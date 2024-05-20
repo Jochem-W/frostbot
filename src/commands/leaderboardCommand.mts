@@ -1,3 +1,6 @@
+/**
+ * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
+ */
 import { Colours } from "../models/colours.mjs"
 import { InteractionContext, InstallationContext } from "../models/command.mjs"
 import { Config } from "../models/config.mjs"

@@ -1,3 +1,6 @@
+/**
+ * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
+ */
 import { Drizzle } from "../clients.mjs"
 import { actionDropdown } from "../commands/mod/components/actionDropdown.mjs"
 import { confirmAction } from "../commands/mod/components/confirmAction.mjs"

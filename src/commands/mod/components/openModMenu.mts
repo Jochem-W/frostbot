@@ -1,3 +1,6 @@
+/**
+ * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
+ */
 import { ModMenuState, modMenu } from "../../../messages/modMenu.mjs"
 import { staticComponent } from "../../../models/component.mjs"
 import { tryFetchMember } from "../../../util/discord.mjs"

@@ -1,3 +1,6 @@
+/**
+ * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
+ */
 import { AddImageToLog } from "./handlers/addImageToLog.mjs"
 import { InteractionHandler } from "./handlers/interactionHandler.mjs"
 import { LevelRolesOnJoin } from "./handlers/levelRolesOnJoin.mjs"
