@@ -12,18 +12,13 @@ import { UpdateLeaderboardOnLeave } from "./handlers/updateLeaderboardOnLeave.mj
 import { UpdateLeaderboardOnStart } from "./handlers/updateLeaderboardOnStart.mjs"
 import { UpdateLeaderboardOnUser } from "./handlers/updateLeaderboardOnUser.mjs"
 import { XpOnMessage } from "./handlers/xpOnMessage.mjs"
+import { Config } from "./models/config.mjs"
 import type { Handler } from "./models/handler.mjs"
 import type { ClientEvents } from "discord.js"
 
 export const Handlers: Handler<keyof ClientEvents>[] = [
   ReadyHandler,
   InteractionHandler,
-  XpOnMessage,
-  LevelRolesOnJoin,
-  UpdateLeaderboardOnStart,
-  UpdateLeaderboardOnJoin,
-  UpdateLeaderboardOnLeave,
-  UpdateLeaderboardOnUser,
   LogBans,
   LogKick,
   LogTimeout,
@@ -31,3 +26,14 @@ export const Handlers: Handler<keyof ClientEvents>[] = [
   LogUntimeout,
   AddImageToLog,
 ]
+
+if (Config.xp.enabled) {
+  Handlers.push(
+    XpOnMessage,
+    LevelRolesOnJoin,
+    UpdateLeaderboardOnStart,
+    UpdateLeaderboardOnJoin,
+    UpdateLeaderboardOnLeave,
+    UpdateLeaderboardOnUser,
+  )
+}

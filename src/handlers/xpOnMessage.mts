@@ -14,7 +14,6 @@ const times = new TTLCache<string, boolean>({
 })
 
 export const XpOnMessage = handler({
-  enabled: Config.xp.enabled,
   event: "messageCreate",
   once: false,
   async handle(message) {

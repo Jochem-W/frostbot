@@ -7,24 +7,27 @@ import { RestoreLevelCommand } from "./commands/restoreLevelCommand.mjs"
 import { ToggleInvitesCommand } from "./commands/toggleInvitesCommand.mjs"
 import { XpCommand } from "./commands/xpCommand.mjs"
 import type { Command } from "./models/command.mjs"
+import { Config } from "./models/config.mjs"
 import type { ApplicationCommandType, Snowflake } from "discord.js"
 
 export const SlashCommands: Command<ApplicationCommandType.ChatInput>[] = [
   ModCommand,
-  RankCommand,
-  XpCommand,
-  LeaderboardCommand,
   ToggleInvitesCommand,
 ]
 export const MessageContextMenuCommands: Command<ApplicationCommandType.Message>[] =
-  [RestoreLevelCommand]
+  []
 
 export const UserContextMenuCommands: Command<ApplicationCommandType.User>[] = [
   ModUserContextCommand,
-  RankContextCommand,
 ]
 
 export const RegisteredCommands = new Map<
   Snowflake,
   Command<ApplicationCommandType>
 >()
+
+if (Config.xp.enabled) {
+  SlashCommands.push(RankCommand, XpCommand, LeaderboardCommand)
+  MessageContextMenuCommands.push(RestoreLevelCommand)
+  UserContextMenuCommands.push(RankContextCommand)
+}
