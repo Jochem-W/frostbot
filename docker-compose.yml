@@ -1,18 +1,18 @@
 services:
   db:
-    container_name: goobism-db
+    container_name: frostbot-db
     image: postgres:15
     env_file: .env.db
     environment:
-      POSTGRES_USER: goobism
+      POSTGRES_USER: frostbot
     volumes:
       - ./persisted/db/data:/var/lib/postgresql/data
     restart: unless-stopped
     ports:
       - 5433:5432
   webapp:
-    container_name: goobism-app
-    build: ../goobism-app
+    container_name: frostbot-app
+    build: ../frostbot-app
     restart: unless-stopped
     networks:
       - caddy_caddy
