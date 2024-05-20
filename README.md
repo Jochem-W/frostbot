@@ -7,6 +7,10 @@ are based off of [shackhorn](https://github.com/shackhorn)'s Goobism V3.
 
 ![rank.png](assets/rank.png)
 
+## Known issues
+
+- XP doesn't properly support multiple servers.
+
 ## Usage
 
 To get started, set-up an S3-compatible storage bucket and a Postgres database, and push the Drizzle schema to the database using `drizzle-kit`. Next, fill in and rename the `example.config.json` and `example.env` files. Finally, compile the TypeScript code to JavaScript, and run `dist/index.mjs`.
