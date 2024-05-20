@@ -1,3 +1,4 @@
+import { InstallationContext, InteractionContext } from "./command.mjs"
 import {
   APIApplicationCommandOptionChoice,
   ApplicationCommandOptionAllowedChannelTypes,
@@ -179,9 +180,10 @@ type SlashSubcommandData<Options extends SlashOptionData<boolean>[]> =
 
 type SlashCommandData<Options extends SlashOptionData<boolean>[]> =
   SlashCommandSharedData & {
-    dmPermission: boolean
+    integrationTypes: InstallationContext[]
+    contexts: InteractionContext[]
     defaultMemberPermissions: Permissions | bigint | number | null
-    nsfw?: boolean
+    nsfw: boolean
   } & (
       | {
           options?: [...Options]
@@ -398,9 +400,13 @@ export function slashCommand<Data extends SlashOptionData<boolean>[]>(
   const commandBuilder = new SlashCommandBuilder()
     .setName(name)
     .setDescription(description)
-    .setDMPermission(data.dmPermission)
     .setDefaultMemberPermissions(data.defaultMemberPermissions)
-    .setNSFW(data.nsfw === true)
+    .setNSFW(data.nsfw)
+
+  // @ts-expect-error Not implemented in discord.js yet
+  commandBuilder.contexts = data.contexts
+  // @ts-expect-error Not implemented in discord.js yet
+  commandBuilder.integration_types = data.integrationTypes
 
   if (nameLocalizations) {
     commandBuilder.setNameLocalizations(nameLocalizations)

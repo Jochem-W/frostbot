@@ -1,10 +1,13 @@
+import { InteractionContext, InstallationContext } from "../models/command.mjs"
 import { slashCommand, slashSubcommand } from "../models/slashCommand.mjs"
 import { PermissionFlagsBits } from "discord.js"
 
 export const ToggleInvitesCommand = slashCommand({
   name: "toggle",
   description: "Command group",
-  dmPermission: false,
+  contexts: [InteractionContext.Guild],
+  integrationTypes: [InstallationContext.GuildInstall],
+  nsfw: false,
   defaultMemberPermissions: PermissionFlagsBits.Administrator,
   subcommands: [
     slashSubcommand({

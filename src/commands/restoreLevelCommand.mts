@@ -1,5 +1,6 @@
 import { Drizzle } from "../clients.mjs"
 import { Colours } from "../models/colours.mjs"
+import { InteractionContext, InstallationContext } from "../models/command.mjs"
 import { Config } from "../models/config.mjs"
 import { contextMenuCommand } from "../models/contextMenuCommand.mjs"
 import { usersTable } from "../schema.mjs"
@@ -50,7 +51,8 @@ export const RestoreLevelCommand = contextMenuCommand({
   name: "Restore level",
   type: ApplicationCommandType.Message,
   defaultMemberPermissions: null,
-  dmPermission: false,
+  contexts: [InteractionContext.Guild],
+  integrationTypes: [InstallationContext.GuildInstall],
   async handle(interaction, message) {
     if (!interaction.inCachedGuild()) {
       return

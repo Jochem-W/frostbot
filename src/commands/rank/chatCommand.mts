@@ -1,3 +1,7 @@
+import {
+  InteractionContext,
+  InstallationContext,
+} from "../../models/command.mjs"
 import { slashCommand } from "../../models/slashCommand.mjs"
 import { sendRankCard } from "./logic.mjs"
 
@@ -5,7 +9,9 @@ export const RankCommand = slashCommand({
   name: "rank",
   description: "View your own rank card, or that of another user.",
   defaultMemberPermissions: null,
-  dmPermission: true,
+  contexts: [InteractionContext.Guild, InteractionContext.BotDm],
+  integrationTypes: [InstallationContext.GuildInstall],
+  nsfw: false,
   options: [
     {
       name: "user",

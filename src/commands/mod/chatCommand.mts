@@ -1,3 +1,7 @@
+import {
+  InstallationContext,
+  InteractionContext,
+} from "../../models/command.mjs"
 import { slashCommand } from "../../models/slashCommand.mjs"
 import { ActSubcommand } from "./subcommands/act.mjs"
 import { AttachSubcommand } from "./subcommands/attach.mjs"
@@ -11,7 +15,9 @@ export const ModCommand = slashCommand({
   name: "mod",
   description: "Commands related to moderation",
   defaultMemberPermissions: PermissionFlagsBits.ModerateMembers,
-  dmPermission: false,
+  contexts: [InteractionContext.Guild],
+  integrationTypes: [InstallationContext.GuildInstall],
+  nsfw: false,
   subcommands: [
     ActSubcommand,
     AttachSubcommand,

@@ -33,3 +33,14 @@ export type Command<T extends ApplicationCommandType> =
             ) => Promise<void>
           }
         : never
+
+export enum InstallationContext {
+  GuildInstall = 0,
+  UserInstall = 1,
+}
+
+export enum InteractionContext {
+  Guild = 0,
+  BotDm = 1,
+  PrivateChannel = 2,
+}

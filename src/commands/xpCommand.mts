@@ -1,4 +1,5 @@
 import { Drizzle } from "../clients.mjs"
+import { InteractionContext, InstallationContext } from "../models/command.mjs"
 import { slashCommand } from "../models/slashCommand.mjs"
 import { usersTable } from "../schema.mjs"
 import { tryFetchMember } from "../util/discord.mjs"
@@ -7,7 +8,9 @@ import { EmbedBuilder, PermissionFlagsBits, userMention } from "discord.js"
 export const XpCommand = slashCommand({
   name: "xp",
   description: "Set a user's XP",
-  dmPermission: false,
+  contexts: [InteractionContext.Guild],
+  integrationTypes: [InstallationContext.GuildInstall],
+  nsfw: false,
   defaultMemberPermissions: PermissionFlagsBits.Administrator,
   options: [
     { name: "user", description: "Target user", type: "user", required: true },

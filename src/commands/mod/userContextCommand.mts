@@ -1,4 +1,8 @@
 import { modMenu, type ModMenuState } from "../../messages/modMenu.mjs"
+import {
+  InstallationContext,
+  InteractionContext,
+} from "../../models/command.mjs"
 import { contextMenuCommand } from "../../models/contextMenuCommand.mjs"
 import { tryFetchMember } from "../../util/discord.mjs"
 import { ApplicationCommandType, PermissionFlagsBits } from "discord.js"
@@ -7,7 +11,8 @@ export const ModUserContextCommand = contextMenuCommand({
   name: "Open mod menu",
   type: ApplicationCommandType.User,
   defaultMemberPermissions: PermissionFlagsBits.ModerateMembers,
-  dmPermission: false,
+  contexts: [InteractionContext.Guild],
+  integrationTypes: [InstallationContext.GuildInstall],
   async handle(interaction, target) {
     if (!interaction.inCachedGuild()) {
       return
