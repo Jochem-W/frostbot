@@ -1,20 +1,20 @@
 services:
   db:
     container_name: frostbot-db
-    image: postgres:15
+    image: postgres:16
     env_file: .env.db
     environment:
       POSTGRES_USER: frostbot
     volumes:
       - ./persisted/db/data:/var/lib/postgresql/data
     restart: unless-stopped
-    # webapp:
-    #   container_name: frostbot-app
-    #   build: ../frostbot-app
-    #   restart: unless-stopped
-    #   networks:
-      #     - caddy_caddy
-      #     - default
+  # webapp:
+  #   container_name: frostbot-app
+  #   build: ../frostbot-app
+  #   restart: unless-stopped
+  #   networks:
+  #     - caddy_caddy
+  #     - default
   bot:
     build: .
     env_file: .env
@@ -24,5 +24,5 @@ services:
     depends_on:
       - db
 # networks:
-  #   caddy_caddy:
-    #     external: true
+#   caddy_caddy:
+#     external: true
