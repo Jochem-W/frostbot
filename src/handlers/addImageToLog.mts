@@ -31,7 +31,7 @@ export const AddImageToLog = handler({
         eq(attachmentsTable.actionId, actionLogsTable.actionId),
       )
 
-    const log = data[0]?.actionLogs
+    const log = data[0]?.action_logs
     if (!log) {
       return
     }
