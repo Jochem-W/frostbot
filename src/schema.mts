@@ -12,7 +12,7 @@ import {
 } from "drizzle-orm/pg-core"
 import { createInsertSchema } from "drizzle-zod"
 
-export const actionsEnum = pgEnum("actionsEnum", [
+export const actionsEnum = pgEnum("actions_enum", [
   "unban",
   "kick",
   "warn",
@@ -25,18 +25,18 @@ export const actionsEnum = pgEnum("actionsEnum", [
 
 export const actionsTable = pgTable("actions", {
   id: serial("id").primaryKey(),
-  guildId: text("guildId").notNull(),
-  userId: text("userId").notNull(),
+  guildId: text("guild_id").notNull(),
+  userId: text("user_id").notNull(),
   action: actionsEnum("action").notNull(),
   body: text("body"),
   dm: boolean("dm").notNull(),
-  staffId: text("staffId").notNull(),
+  staffId: text("staff_id").notNull(),
   timeout: integer("timeout"),
   timestamp: timestamp("timestamp").notNull(),
-  dmSuccess: boolean("dmSuccess").notNull(),
-  actionSucess: boolean("actionSuccess").notNull(),
-  deleteMessageSeconds: integer("deleteMessageSecconds"),
-  timedOutUntil: timestamp("timedOutUntil"),
+  dmSuccess: boolean("dm_success").notNull(),
+  actionSucess: boolean("action_success").notNull(),
+  deleteMessageSeconds: integer("delete_message_seconds"),
+  timedOutUntil: timestamp("timed_out_until"),
   revoked: boolean("revoked").notNull().default(false),
   hidden: boolean("hidden").notNull().default(false),
 })
@@ -53,19 +53,19 @@ export const usersTable = pgTable("users", {
 export const attachmentsTable = pgTable("attachments", {
   id: serial("id").primaryKey(),
   key: text("key").notNull(),
-  actionId: integer("actionId")
+  actionId: integer("action_id")
     .notNull()
     .references(() => actionsTable.id),
 })
 
-export const actionLogsTable = pgTable("actionLogs", {
+export const actionLogsTable = pgTable("action_logs", {
   id: serial("id").primaryKey(),
-  actionId: integer("actionId")
+  actionId: integer("action_id")
     .notNull()
     .references(() => actionsTable.id)
     .unique(),
-  messageId: text("messageId").notNull().unique(),
-  channelId: text("channelId").notNull(),
+  messageId: text("message_id").notNull().unique(),
+  channelId: text("channel_id").notNull(),
 })
 
 export const insertActionsSchema = createInsertSchema(actionsTable)
