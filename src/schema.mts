@@ -62,8 +62,7 @@ export const actionLogsTable = pgTable("action_logs", {
   id: serial("id").primaryKey(),
   actionId: integer("action_id")
     .notNull()
-    .references(() => actionsTable.id)
-    .unique(),
+    .references(() => actionsTable.id),
   messageId: text("message_id").notNull().unique(),
   channelId: text("channel_id").notNull(),
 })

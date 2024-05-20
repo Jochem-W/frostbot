@@ -31,8 +31,8 @@ export const AddImageToLog = handler({
         eq(attachmentsTable.actionId, actionLogsTable.actionId),
       )
 
-    const log = data[0]?.action_logs
-    if (!log) {
+    const actionLog = data[0]?.action_logs
+    if (!actionLog) {
       return
     }
 
@@ -65,33 +65,39 @@ export const AddImageToLog = handler({
 
     await Drizzle.insert(attachmentsTable).values(
       fulfilled.map((result) => ({
-        actionId: log.actionId,
+        actionId: actionLog.actionId,
         key: result.value.key,
       })),
     )
 
-    const channel = await fetchChannel(
-      message.client,
-      log.channelId,
-      ChannelType.GuildText,
-    )
+    const logs = await Drizzle.select()
+      .from(actionLogsTable)
+      .where(eq(actionLogsTable.actionId, actionLog.actionId))
 
-    const logMessage = await channel.messages.fetch(log.messageId)
-    const mainEmbed = new EmbedBuilder(logMessage.embeds[0]?.data)
+    for (const log of logs) {
+      const channel = await fetchChannel(
+        message.client,
+        log.channelId,
+        ChannelType.GuildText,
+      )
 
-    await logMessage.edit({
-      embeds: [
-        ...logMessage.embeds.map((embed) =>
-          new EmbedBuilder(embed.data).setURL(Config.url.external),
-        ),
-        ...fulfilled.map((attachment) =>
-          new EmbedBuilder()
-            .setURL(Config.url.external)
-            .setColor(mainEmbed.data.color ?? null)
-            .setImage(fileURL(attachment.value.key).toString()),
-        ),
-      ],
-    })
+      const logMessage = await channel.messages.fetch(log.messageId)
+      const mainEmbed = new EmbedBuilder(logMessage.embeds[0]?.data)
+
+      await logMessage.edit({
+        embeds: [
+          ...logMessage.embeds.map((embed) =>
+            new EmbedBuilder(embed.data).setURL(Config.url.external),
+          ),
+          ...fulfilled.map((attachment) =>
+            new EmbedBuilder()
+              .setURL(Config.url.external)
+              .setColor(mainEmbed.data.color ?? null)
+              .setImage(fileURL(attachment.value.key).toString()),
+          ),
+        ],
+      })
+    }
 
     const reply = await message.reply({
       embeds: [

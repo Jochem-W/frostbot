@@ -174,7 +174,7 @@ export const AttachSubcommand = slashSubcommand({
 
     await interaction.editReply({ embeds })
 
-    const [action] = await Drizzle.select({
+    const actions = await Drizzle.select({
       data: actionsTable,
       log: actionLogsTable,
     })
@@ -182,34 +182,32 @@ export const AttachSubcommand = slashSubcommand({
       .where(eq(actionsTable.id, id))
       .innerJoin(actionLogsTable, eq(actionLogsTable.actionId, actionsTable.id))
 
-    if (!action) {
-      return
-    }
+    for (const action of actions) {
+      const channel = await interaction.client.channels.fetch(
+        action.log.channelId,
+      )
+      if (!channel?.isTextBased()) {
+        return
+      }
 
-    const channel = await interaction.client.channels.fetch(
-      action.log.channelId,
-    )
-    if (!channel?.isTextBased()) {
-      return
-    }
+      const message = await channel.messages.fetch(action.log.messageId)
+      const logEmbeds = message.embeds.map(
+        (embed) => new EmbedBuilder(embed.data),
+      )
+      logEmbeds[0]?.setURL(Config.url.external)
+      if (!logEmbeds[0]?.data.image) {
+        logEmbeds[0]?.setImage(fulfilled[0]?.value.url.toString() ?? null)
+        fulfilled.shift()
+      }
 
-    const message = await channel.messages.fetch(action.log.messageId)
-    const logEmbeds = message.embeds.map(
-      (embed) => new EmbedBuilder(embed.data),
-    )
-    logEmbeds[0]?.setURL(Config.url.external)
-    if (!logEmbeds[0]?.data.image) {
-      logEmbeds[0]?.setImage(fulfilled[0]?.value.url.toString() ?? null)
-      fulfilled.shift()
+      logEmbeds.push(
+        ...fulfilled.map((result) =>
+          new EmbedBuilder()
+            .setImage(result.value.url.toString())
+            .setURL(Config.url.external),
+        ),
+      )
+      await message.edit({ embeds: logEmbeds })
     }
-
-    logEmbeds.push(
-      ...fulfilled.map((result) =>
-        new EmbedBuilder()
-          .setImage(result.value.url.toString())
-          .setURL(Config.url.external),
-      ),
-    )
-    await message.edit({ embeds: logEmbeds })
   },
 })
