@@ -8,15 +8,13 @@ services:
     volumes:
       - ./persisted/db/data:/var/lib/postgresql/data
     restart: unless-stopped
-    ports:
-      - 5433:5432
-  webapp:
-    container_name: frostbot-app
-    build: ../frostbot-app
-    restart: unless-stopped
-    networks:
-      - caddy_caddy
-      - default
+    # webapp:
+    #   container_name: frostbot-app
+    #   build: ../frostbot-app
+    #   restart: unless-stopped
+    #   networks:
+      #     - caddy_caddy
+      #     - default
   bot:
     build: .
     env_file: .env
@@ -25,7 +23,6 @@ services:
     restart: unless-stopped
     depends_on:
       - db
-
-networks:
-  caddy_caddy:
-    external: true
+# networks:
+  #   caddy_caddy:
+    #     external: true
