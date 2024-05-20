@@ -72,16 +72,17 @@ export function modMenuSuccess(data: Data) {
     switch (dmStatus.error) {
       case "cannot_send":
         value =
-          "I was unable to send the user a message, because they either only allow messages from friends, or because they blocked the bot."
+          "The user hasn't been sent a message, because they either only allow messages from friends, or because they blocked the bot."
         break
       case "not_in_server":
-        value = `I was unable to send the user a message, because they're not in ${guild.name}.`
+        value = `The user hasn't been sent a message, because they're not in ${guild.name}.`
         break
       case "unknown":
-        value = "I was unable to send the user a message for an unknown reason"
+        value = "The user hasn't been sent a message due to an unknown reason"
         break
       case "action_failed":
-        value = "I didn't send the user a message, because the action failed."
+        value =
+          "The user hasn't been sent a message, because the action failed."
     }
     embed.addFields({
       name: "❌ No DM was sent",
@@ -93,19 +94,19 @@ export function modMenuSuccess(data: Data) {
     let value
     switch (actionStatus.error) {
       case "not_in_server":
-        value = `I was unable to perform the requested action, because the user is not in ${guild.name}.`
+        value = `The requested action wasn't performed, because the user is not in ${guild.name}.`
         break
       case "timeout_duration":
         value =
-          "I was unable to time the user out, because the requested timeout duration is invalid."
+          "The user wasn't timed out, because the requested timeout duration is invalid."
         break
       case "unhandled":
         value =
-          "I was unable to perform the requested action, because it hasn't been implemented yet."
+          "The requested action wasn't performed, because it hasn't been implemented yet."
         break
       case "unknown":
         value =
-          "I was unable to perform the requested action due to an unknown reason."
+          "The requested action wasn't performed due to an unknown reason."
         break
     }
 

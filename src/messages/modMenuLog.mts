@@ -159,12 +159,13 @@ export function modMenuLog({
         line = "because of an unknown reason."
         break
       case "action_failed":
-        line = "- I didn't send a DM to the user, because the action failed."
+        line =
+          "- The user hasn't been sent a message, because the action failed."
         prepend = false
     }
 
     if (prepend) {
-      line = "- I was unable to send a DM to the user, " + line
+      line = "- The user hasn't been sent a message, " + line
     }
 
     notice.push(line)
@@ -289,15 +290,13 @@ function formatActionFail({
     case "ban":
     case "restrain":
     case "warn":
-      return `I wasn't able to ${action} ${userMention(target.id)}, `
+      return `Performing a ${action} on ${userMention(target.id)} failed, `
     case "timeout":
-      return `I wasn't able to time ${userMention(target.id)} out, `
+      return `${userMention(target.id)} hasn't been timed out out, `
     case "note":
-      return `I wasn't able to create a note for ${userMention(target.id)}, `
+      return `A note for ${userMention(target.id)} hasn't been created, `
     case "untimeout":
-      return `I wasn't able to remove the timeout for ${userMention(
-        target.id,
-      )}, `
+      return `The timeout for ${userMention(target.id)} hasn't been removed, `
   }
 }
 

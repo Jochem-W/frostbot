@@ -128,10 +128,7 @@ export const InteractionHandler = handler({
       const embeds = [
         new EmbedBuilder()
           .setColor(Colours.red[500])
-          .setTitle("I ran into an error while executing this command")
-          .setDescription(
-            "I'll let staff know about what happened, and hopefully it'll be fixed soon!",
-          ),
+          .setTitle("An error occurred while executing this command"),
       ]
 
       if (interaction.replied || interaction.deferred) {

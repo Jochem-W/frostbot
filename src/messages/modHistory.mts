@@ -98,11 +98,11 @@ export async function modHistory(user: User, guild: Guild) {
 
     const notice = []
     if (!entry.dmSuccess) {
-      notice.push("- I was unable to DM the user.")
+      notice.push("- The user hasn't been DMed.")
     }
 
     if (!entry.actionSucess) {
-      notice.push("- I was unable to execute the requested action")
+      notice.push("- The requested action hasn't been performed.")
     }
 
     footer += `ID: ${entry.id}`
