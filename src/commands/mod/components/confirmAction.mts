@@ -73,8 +73,8 @@ export const confirmAction = staticComponent({
       )
 
       if (
-        state.guild.id !== logs.guild.id &&
-        !logs.guild.members.cache.has(state.target.id)
+        guild.id !== logs.guild.id &&
+        !logs.guild.members.cache.has(target.id)
       ) {
         continue
       }

@@ -71,7 +71,7 @@ export function modMenuLog(
       new EmbedBuilder()
         .setImage(fileURL(image.key).toString())
         .setURL(Config.url.external)
-        .setColor(getColour(state.action)),
+        .setColor(getColour(action)),
     ) ?? []
 
   let mainEmbed = embeds[0]
@@ -89,7 +89,7 @@ export function modMenuLog(
       iconURL: staffUser.displayAvatarURL(),
     })
     .setThumbnail(targetUser.displayAvatarURL())
-    .setColor(getColour(state.action))
+    .setColor(getColour(action))
     .setTimestamp(timestamp)
 
   let footer = ""
