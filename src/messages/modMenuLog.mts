@@ -28,23 +28,27 @@ import {
   GuildMember,
   userMention,
   User,
+  Guild,
 } from "discord.js"
 import { eq } from "drizzle-orm"
 import { DateTime, Duration } from "luxon"
 
-export function modMenuLog({
-  dmStatus,
-  actionStatus,
-  insertStatus,
-  state,
-  images,
-}: {
-  dmStatus: DmStatus
-  actionStatus: ActionStatus
-  insertStatus: InsertStatus
-  state: Omit<ModMenuState, "permissions" | "guild">
-  images?: (typeof attachmentsTable.$inferSelect)[]
-}) {
+export function modMenuLog(
+  {
+    dmStatus,
+    actionStatus,
+    insertStatus,
+    state,
+    images,
+  }: {
+    dmStatus: DmStatus
+    actionStatus: ActionStatus
+    insertStatus: InsertStatus
+    state: Omit<ModMenuState, "permissions">
+    images?: (typeof attachmentsTable.$inferSelect)[]
+  },
+  sendGuild: Guild,
+) {
   const {
     staff,
     target,
@@ -55,6 +59,7 @@ export function modMenuLog({
     deleteMessageSeconds,
     timedOutUntil,
     dm,
+    guild,
   } = state
 
   const staffUser = staff instanceof GuildMember ? staff.user : staff
@@ -77,7 +82,10 @@ export function modMenuLog({
 
   mainEmbed
     .setAuthor({
-      name: formatTitle(state.staff, state.target, state.action),
+      name: formatTitle(staff, target, action, {
+        action: guild,
+        send: sendGuild,
+      }),
       iconURL: staffUser.displayAvatarURL(),
     })
     .setThumbnail(targetUser.displayAvatarURL())
@@ -224,6 +232,7 @@ export function modMenuLog({
 export async function modMenuLogFromDb(
   client: Client<true>,
   options: typeof actionsTable.$inferSelect.id | ActionWithOptionalImages,
+  sendGuild: Guild,
 ) {
   let data
   if (typeof options === "number") {
@@ -254,6 +263,7 @@ export async function modMenuLogFromDb(
       dm: data.dm,
       timeout: 0,
       deleteMessageSeconds: 0,
+      guild,
     },
   }
 
@@ -277,7 +287,7 @@ export async function modMenuLogFromDb(
     params.state.timedOutUntil = data.timedOutUntil
   }
 
-  return modMenuLog(params)
+  return modMenuLog(params, sendGuild)
 }
 
 function formatActionFail({

@@ -82,7 +82,7 @@ export const LogUnbans = handler({
       }
 
       const message = await channel.send(
-        await modMenuLogFromDb(ban.client, entry),
+        await modMenuLogFromDb(ban.client, entry, channel.guild),
       )
 
       await Drizzle.insert(actionLogsTable).values({

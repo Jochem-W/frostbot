@@ -235,7 +235,7 @@ export const ActSubcommand = slashSubcommand({
         continue
       }
 
-      const message = await channel.send(modMenuLog(params))
+      const message = await channel.send(modMenuLog(params, channel.guild))
       if (insertStatus.success) {
         await Drizzle.insert(actionLogsTable).values({
           messageId: message.id,

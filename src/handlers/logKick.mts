@@ -89,7 +89,7 @@ export const LogKick = handler({
       }
 
       const message = await channel.send(
-        await modMenuLogFromDb(member.client, entry),
+        await modMenuLogFromDb(member.client, entry, channel.guild),
       )
 
       await Drizzle.insert(actionLogsTable).values({

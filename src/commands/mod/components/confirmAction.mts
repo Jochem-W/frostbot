@@ -80,7 +80,7 @@ export const confirmAction = staticComponent({
       }
 
       const message = await logs.send(
-        modMenuLog({ state, dmStatus, actionStatus, insertStatus }),
+        modMenuLog({ state, dmStatus, actionStatus, insertStatus }, logs.guild),
       )
       if (insertStatus.success) {
         await Drizzle.insert(actionLogsTable).values({

@@ -117,7 +117,7 @@ export const LogTimeout = handler({
       }
 
       const message = await channel.send(
-        await modMenuLogFromDb(newMember.client, entry),
+        await modMenuLogFromDb(newMember.client, entry, channel.guild),
       )
 
       await Drizzle.insert(actionLogsTable).values({

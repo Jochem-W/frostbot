@@ -463,6 +463,10 @@ export function formatTitle(
   staff: User | GuildMember | Snowflake,
   target: User | GuildMember | Snowflake,
   action: typeof actionsTable.$inferSelect.action,
+  guilds?: {
+    action: Guild
+    send: Guild
+  },
 ) {
   const staffUser = staff instanceof GuildMember ? staff.user : staff
   const targetUser = target instanceof GuildMember ? target.user : target
@@ -472,22 +476,35 @@ export function formatTitle(
   const targetName =
     targetUser instanceof User ? targetUser.displayName : targetUser
 
+  let title
   switch (action) {
     case "warn":
-      return `${staffName} issued a warning on ${targetName}`
+      title = `${staffName} issued a warning on ${targetName}`
+      break
     case "kick":
     case "timeout":
     case "ban":
-      return `${staffName} issued a ${action} on ${targetName}`
+      title = `${staffName} issued a ${action} on ${targetName}`
+      break
     case "restrain":
-      return `${staffName} issued a restraint on ${targetName}`
+      title = `${staffName} issued a restraint on ${targetName}`
+      break
     case "note":
-      return `${staffName} created a note for ${targetName}`
+      title = `${staffName} created a note for ${targetName}`
+      break
     case "untimeout":
-      return `${staffName} removed a timeout for ${targetName}`
+      title = `${staffName} removed a timeout for ${targetName}`
+      break
     case "unban":
-      return `${staffName} removed a ban for ${targetName}`
+      title = `${staffName} removed a ban for ${targetName}`
+      break
   }
+
+  if (guilds && guilds.action.id !== guilds.send.id) {
+    title += ` in ${guilds.action.name}`
+  }
+
+  return title
 }
 
 export type DmStatus =
