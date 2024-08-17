@@ -59,9 +59,10 @@ export async function sendRankCard(
   const page = await browser.newPage()
   await page.goto(url.toString())
   const screenshot = await page.screenshot()
+  const buffer = Buffer.from(screenshot)
 
   await interaction.reply({
-    files: [new AttachmentBuilder(screenshot, { name: "card.png" })],
+    files: [new AttachmentBuilder(buffer, { name: "card.png" })],
     ephemeral,
   })
 
