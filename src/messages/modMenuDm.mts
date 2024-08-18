@@ -6,7 +6,7 @@ import { Config } from "../models/config.mjs"
 import { attachmentsTable } from "../schema.mjs"
 import { fileURL } from "../util/s3.mjs"
 import { type ModMenuState } from "./modMenu.mjs"
-import { EmbedBuilder } from "discord.js"
+import { EmbedAuthorOptions, EmbedBuilder } from "discord.js"
 
 export function modMenuDm(
   state: ModMenuState,
@@ -29,7 +29,7 @@ export function modMenuDm(
   }
 
   mainEmbed
-    .setTitle(formatTitle(state))
+    .setAuthor(formatAuthor(state))
     .setColor(Colours.red[500])
     .setTimestamp(timestamp)
 
@@ -40,31 +40,37 @@ export function modMenuDm(
   return { embeds }
 }
 
-function formatTitle({ action, guild }: ModMenuState) {
-  let text
+function formatAuthor({ action, guild }: ModMenuState) {
+  let name
   switch (action) {
     case "kick":
-      text = `You have been kicked in `
+      name = `You have been kicked in `
       break
     case "warn":
-      text = `You have been warned in `
+      name = `You have been warned in `
       break
     case "timeout":
-      text = `You have been timed out in `
+      name = `You have been timed out in `
       break
     case "ban":
-      text = `You have been banned from `
+      name = `You have been banned from `
       break
     case "unban":
     case "note":
     case "restrain":
       throw new Error(`DMs can't be created for ${action}`)
     case "untimeout":
-      text = `Your timeout has been removed in `
+      name = `Your timeout has been removed in `
       break
   }
 
-  text += guild.name
+  name += guild.name
 
-  return text
+  const author: EmbedAuthorOptions = { name }
+  const icon = guild.iconURL()
+  if (icon) {
+    author.iconURL = icon
+  }
+
+  return author
 }
