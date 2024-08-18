@@ -1,19 +1,15 @@
 /**
  * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
  */
-import { Drizzle } from "../../../clients.mjs"
+import { Exchange, ProducerChannel } from "../../../clients.mjs"
+import { AmpqMessage } from "../../../handlers/rabbit.mjs"
 import { ModMenuState } from "../../../messages/modMenu.mjs"
 import { modMenuLog } from "../../../messages/modMenuLog.mjs"
 import { modMenuSuccess } from "../../../messages/modMenuSuccess.mjs"
 import { Colours } from "../../../models/colours.mjs"
-import { Config } from "../../../models/config.mjs"
 import { slashSubcommand } from "../../../models/slashCommand.mjs"
-import { actionLogsTable, insertActionsSchema } from "../../../schema.mjs"
-import {
-  attachmentsAreImages,
-  fetchChannel,
-  tryFetchMember,
-} from "../../../util/discord.mjs"
+import { insertActionsSchema } from "../../../schema.mjs"
+import { attachmentsAreImages, tryFetchMember } from "../../../util/discord.mjs"
 import { uploadAttachments } from "../../../util/s3.mjs"
 import {
   getPermissions,
@@ -22,7 +18,7 @@ import {
   tryInsert,
   tryInsertImages,
 } from "../shared.mjs"
-import { Attachment, ChannelType, EmbedBuilder } from "discord.js"
+import { Attachment, EmbedBuilder } from "discord.js"
 import { Duration } from "luxon"
 import { z } from "zod"
 
@@ -221,28 +217,28 @@ export const ActSubcommand = slashSubcommand({
       params.images = insertImagesStatus.data
     }
 
-    for (const channelId of Config.channels.mod) {
-      const channel = await fetchChannel(
-        interaction.client,
-        channelId,
-        ChannelType.GuildText,
-      )
-
-      if (
-        state.guild.id !== channel.guild.id &&
-        !channel.guild.members.cache.has(state.target.id)
-      ) {
-        continue
-      }
-
-      const message = await channel.send(modMenuLog(params, channel.guild))
-      if (insertStatus.success) {
-        await Drizzle.insert(actionLogsTable).values({
-          messageId: message.id,
-          channelId: message.channelId,
-          actionId: insertStatus.id,
-        })
-      }
+    const log = modMenuLog(params)
+    const ampqMessage: AmpqMessage = {
+      type: "create",
+      guild: {
+        id: state.guild.id,
+        name: state.guild.name,
+      },
+      target: state.target.id,
+      content: {
+        embeds: log.embeds.map((e) => e.toJSON()),
+        components: log.components.map((c) => c.toJSON()),
+      },
     }
+
+    if (insertStatus.success) {
+      ampqMessage.id = insertStatus.id
+    }
+
+    ProducerChannel.publish(
+      Exchange,
+      "",
+      Buffer.from(JSON.stringify(ampqMessage)),
+    )
   },
 })

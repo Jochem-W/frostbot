@@ -1,13 +1,12 @@
 /**
  * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
  */
-import { Drizzle } from "../clients.mjs"
+import { Exchange, ProducerChannel, Drizzle } from "../clients.mjs"
 import { modMenuLogFromDb } from "../messages/modMenuLog.mjs"
-import { Config } from "../models/config.mjs"
 import { handler } from "../models/handler.mjs"
-import { actionLogsTable, actionsTable } from "../schema.mjs"
-import { fetchChannel } from "../util/discord.mjs"
-import { AuditLogEvent, ChannelType, GuildBan } from "discord.js"
+import { actionsTable } from "../schema.mjs"
+import { AmpqMessage } from "./rabbit.mjs"
+import { AuditLogEvent, GuildBan } from "discord.js"
 
 async function getAuditLogEntry(ban: GuildBan) {
   const auditLogs = await ban.guild.fetchAuditLogs({
@@ -67,29 +66,25 @@ export const LogUnbans = handler({
       throw new Error(`Couldn't create a log for the unban of ${ban.user.id}`)
     }
 
-    for (const channelId of Config.channels.mod) {
-      const channel = await fetchChannel(
-        ban.client,
-        channelId,
-        ChannelType.GuildText,
-      )
-
-      if (
-        ban.guild.id !== channel.guild.id &&
-        !channel.guild.members.cache.has(ban.user.id)
-      ) {
-        continue
-      }
-
-      const message = await channel.send(
-        await modMenuLogFromDb(ban.client, entry, channel.guild),
-      )
-
-      await Drizzle.insert(actionLogsTable).values({
-        messageId: message.id,
-        channelId,
-        actionId: entry.id,
-      })
+    const log = await modMenuLogFromDb(ban.client, entry)
+    const ampqMessage: AmpqMessage = {
+      type: "create",
+      guild: {
+        id: ban.guild.id,
+        name: ban.guild.name,
+      },
+      target: entry.userId,
+      content: {
+        embeds: log.embeds.map((e) => e.toJSON()),
+        components: log.components.map((c) => c.toJSON()),
+      },
+      id: entry.id,
     }
+
+    ProducerChannel.publish(
+      Exchange,
+      "",
+      Buffer.from(JSON.stringify(ampqMessage)),
+    )
   },
 })

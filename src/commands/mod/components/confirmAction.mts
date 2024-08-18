@@ -1,13 +1,11 @@
 /**
  * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
  */
-import { Drizzle } from "../../../clients.mjs"
+import { Exchange, ProducerChannel } from "../../../clients.mjs"
+import { AmpqMessage } from "../../../handlers/rabbit.mjs"
 import { modMenuLog } from "../../../messages/modMenuLog.mjs"
 import { modMenuSuccess } from "../../../messages/modMenuSuccess.mjs"
 import { staticComponent } from "../../../models/component.mjs"
-import { Config } from "../../../models/config.mjs"
-import { actionLogsTable } from "../../../schema.mjs"
-import { fetchChannel } from "../../../util/discord.mjs"
 import {
   modMenuState,
   getPermissions,
@@ -15,7 +13,7 @@ import {
   tryDm,
   tryInsert,
 } from "../shared.mjs"
-import { ComponentType, ChannelType } from "discord.js"
+import { ComponentType } from "discord.js"
 
 export const confirmAction = staticComponent({
   type: ComponentType.Button,
@@ -65,30 +63,28 @@ export const confirmAction = staticComponent({
       }),
     )
 
-    for (const channelId of Config.channels.mod) {
-      const logs = await fetchChannel(
-        interaction.client,
-        channelId,
-        ChannelType.GuildText,
-      )
-
-      if (
-        guild.id !== logs.guild.id &&
-        !logs.guild.members.cache.has(target.id)
-      ) {
-        continue
-      }
-
-      const message = await logs.send(
-        modMenuLog({ state, dmStatus, actionStatus, insertStatus }, logs.guild),
-      )
-      if (insertStatus.success) {
-        await Drizzle.insert(actionLogsTable).values({
-          messageId: message.id,
-          channelId,
-          actionId: insertStatus.id,
-        })
-      }
+    const log = modMenuLog({ state, dmStatus, actionStatus, insertStatus })
+    const ampqMessage: AmpqMessage = {
+      type: "create",
+      guild: {
+        id: state.guild.id,
+        name: state.guild.name,
+      },
+      target: state.target.id,
+      content: {
+        embeds: log.embeds.map((e) => e.toJSON()),
+        components: log.components.map((c) => c.toJSON()),
+      },
     }
+
+    if (insertStatus.success) {
+      ampqMessage.id = insertStatus.id
+    }
+
+    ProducerChannel.publish(
+      Exchange,
+      "",
+      Buffer.from(JSON.stringify(ampqMessage)),
+    )
   },
 })

@@ -47,7 +47,7 @@ export function modMenuLog(
     state: Omit<ModMenuState, "permissions">
     images?: (typeof attachmentsTable.$inferSelect)[]
   },
-  sendGuild: Guild,
+  sendGuild?: Guild,
 ) {
   const {
     staff,
@@ -82,10 +82,12 @@ export function modMenuLog(
 
   mainEmbed
     .setAuthor({
-      name: formatTitle(staff, target, action, {
-        action: guild,
-        send: sendGuild,
-      }),
+      name: sendGuild
+        ? formatTitle(staff, target, action, {
+            action: guild,
+            send: sendGuild,
+          })
+        : formatTitle(staff, target, action),
       iconURL: staffUser.displayAvatarURL(),
     })
     .setThumbnail(targetUser.displayAvatarURL())
@@ -232,7 +234,7 @@ export function modMenuLog(
 export async function modMenuLogFromDb(
   client: Client<true>,
   options: typeof actionsTable.$inferSelect.id | ActionWithOptionalImages,
-  sendGuild: Guild,
+  sendGuild?: Guild,
 ) {
   let data
   if (typeof options === "number") {

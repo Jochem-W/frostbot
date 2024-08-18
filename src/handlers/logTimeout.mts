@@ -1,18 +1,12 @@
 /**
  * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
  */
-import { Drizzle } from "../clients.mjs"
+import { Exchange, ProducerChannel, Drizzle } from "../clients.mjs"
 import { modMenuLogFromDb } from "../messages/modMenuLog.mjs"
-import { Config } from "../models/config.mjs"
 import { handler } from "../models/handler.mjs"
-import { actionsTable, actionLogsTable } from "../schema.mjs"
-import { fetchChannel } from "../util/discord.mjs"
-import {
-  AuditLogChange,
-  AuditLogEvent,
-  ChannelType,
-  GuildMember,
-} from "discord.js"
+import { actionsTable } from "../schema.mjs"
+import { AmpqMessage } from "./rabbit.mjs"
+import { AuditLogChange, AuditLogEvent, GuildMember } from "discord.js"
 import { DateTime } from "luxon"
 
 async function getAuditLogEntry(member: GuildMember) {
@@ -102,29 +96,25 @@ export const LogTimeout = handler({
       )
     }
 
-    for (const channelId of Config.channels.mod) {
-      const channel = await fetchChannel(
-        newMember.client,
-        channelId,
-        ChannelType.GuildText,
-      )
-
-      if (
-        newMember.guild.id !== channel.guild.id &&
-        !channel.guild.members.cache.has(newMember.id)
-      ) {
-        continue
-      }
-
-      const message = await channel.send(
-        await modMenuLogFromDb(newMember.client, entry, channel.guild),
-      )
-
-      await Drizzle.insert(actionLogsTable).values({
-        messageId: message.id,
-        channelId,
-        actionId: entry.id,
-      })
+    const log = await modMenuLogFromDb(newMember.client, entry)
+    const ampqMessage: AmpqMessage = {
+      type: "create",
+      guild: {
+        id: newMember.guild.id,
+        name: newMember.guild.name,
+      },
+      target: entry.userId,
+      content: {
+        embeds: log.embeds.map((e) => e.toJSON()),
+        components: log.components.map((c) => c.toJSON()),
+      },
+      id: entry.id,
     }
+
+    ProducerChannel.publish(
+      Exchange,
+      "",
+      Buffer.from(JSON.stringify(ampqMessage)),
+    )
   },
 })

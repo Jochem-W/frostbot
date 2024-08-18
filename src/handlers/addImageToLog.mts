@@ -1,13 +1,13 @@
 /**
  * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
  */
-import { Drizzle } from "../clients.mjs"
-import { Config } from "../models/config.mjs"
+import { Drizzle, Exchange, ProducerChannel } from "../clients.mjs"
 import { handler } from "../models/handler.mjs"
 import { actionLogsTable, attachmentsTable } from "../schema.mjs"
-import { attachmentsAreImages, fetchChannel } from "../util/discord.mjs"
-import { fileURL, uploadAttachments } from "../util/s3.mjs"
-import { ChannelType, EmbedBuilder } from "discord.js"
+import { attachmentsAreImages } from "../util/discord.mjs"
+import { uploadAttachments } from "../util/s3.mjs"
+import { AmpqMessage } from "./rabbit.mjs"
+import { EmbedBuilder } from "discord.js"
 import { eq } from "drizzle-orm"
 
 export const AddImageToLog = handler({
@@ -70,35 +70,6 @@ export const AddImageToLog = handler({
       })),
     )
 
-    const logs = await Drizzle.select()
-      .from(actionLogsTable)
-      .where(eq(actionLogsTable.actionId, actionLog.actionId))
-
-    for (const log of logs) {
-      const channel = await fetchChannel(
-        message.client,
-        log.channelId,
-        ChannelType.GuildText,
-      )
-
-      const logMessage = await channel.messages.fetch(log.messageId)
-      const mainEmbed = new EmbedBuilder(logMessage.embeds[0]?.data)
-
-      await logMessage.edit({
-        embeds: [
-          ...logMessage.embeds.map((embed) =>
-            new EmbedBuilder(embed.data).setURL(Config.url.external),
-          ),
-          ...fulfilled.map((attachment) =>
-            new EmbedBuilder()
-              .setURL(Config.url.external)
-              .setColor(mainEmbed.data.color ?? null)
-              .setImage(fileURL(attachment.value.key).toString()),
-          ),
-        ],
-      })
-    }
-
     const reply = await message.reply({
       embeds: [
         new EmbedBuilder()
@@ -109,7 +80,21 @@ export const AddImageToLog = handler({
 
     await message.delete()
 
-    await new Promise((resolve) => setTimeout(resolve, 2500))
+    const delay = new Promise((resolve) => setTimeout(resolve, 2500))
+
+    const amqpMessage: AmpqMessage = {
+      type: "attachments",
+      id: actionLog.actionId,
+      attachments: fulfilled.map((f) => f.value.url.toString()),
+    }
+
+    ProducerChannel.publish(
+      Exchange,
+      "",
+      Buffer.from(JSON.stringify(amqpMessage)),
+    )
+
+    await delay
 
     await reply.delete()
   },

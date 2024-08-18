@@ -1,18 +1,13 @@
 /**
  * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
  */
-import { Drizzle } from "../../../clients.mjs"
+import { Drizzle, Exchange, ProducerChannel } from "../../../clients.mjs"
+import { AmpqMessage } from "../../../handlers/rabbit.mjs"
 import { Colours } from "../../../models/colours.mjs"
 import { slashSubcommand } from "../../../models/slashCommand.mjs"
-import { actionLogsTable, actionsTable } from "../../../schema.mjs"
-import { fetchChannel } from "../../../util/discord.mjs"
+import { actionsTable } from "../../../schema.mjs"
 import { formatTitle } from "../shared.mjs"
-import {
-  ChannelType,
-  EmbedBuilder,
-  escapeStrikethrough,
-  strikethrough,
-} from "discord.js"
+import { EmbedBuilder, escapeStrikethrough, strikethrough } from "discord.js"
 import { and, eq, sql } from "drizzle-orm"
 
 export const RevokeSubcommand = slashSubcommand({
@@ -77,40 +72,19 @@ export const RevokeSubcommand = slashSubcommand({
     const [action] = await Drizzle.update(actionsTable)
       .set({ revoked: true, hidden: hide ?? false })
       .where(eq(actionsTable.id, id))
-      .returning({ body: actionsTable.body, userId: actionsTable.userId })
+      .returning({
+        body: actionsTable.body,
+        userId: actionsTable.userId,
+        id: actionsTable.id,
+      })
 
     if (!action) {
       throw new Error(`Invalid action ${id}`)
     }
 
-    const logs = await Drizzle.select()
-      .from(actionLogsTable)
-      .where(eq(actionLogsTable.actionId, id))
-    for (const log of logs) {
-      const channel = await fetchChannel(
-        interaction.client,
-        log.channelId,
-        ChannelType.GuildText,
-      )
-      const message = await channel.messages.fetch(log.messageId)
-      const embeds = message.embeds.map((embed) => new EmbedBuilder(embed.data))
-      const reasonField = embeds[0]?.data.fields?.find(
-        (field) => field.name === "❔ Reason" || field.name === "🗒️ Body",
-      )
-      if (reasonField) {
-        reasonField.value = strikethrough(
-          escapeStrikethrough(reasonField.value),
-        )
-      }
-
-      const author = embeds[0]?.data.author
-      if (author) {
-        author.name = `[Revoked] ${author.name}`
-        embeds[0]?.setAuthor(author)
-      }
-
-      await channel.messages.edit(log.messageId, { embeds })
-      await channel.send({
+    const amqpMessage: AmpqMessage = {
+      type: "revoked",
+      content: {
         embeds: [
           new EmbedBuilder()
             .setAuthor({
@@ -121,11 +95,15 @@ export const RevokeSubcommand = slashSubcommand({
             })
             .setColor(Colours.red[500]),
         ],
-        reply: {
-          messageReference: log.messageId,
-        },
-      })
+      },
+      id: action.id,
     }
+
+    ProducerChannel.publish(
+      Exchange,
+      "",
+      Buffer.from(JSON.stringify(amqpMessage)),
+    )
 
     const targetUser = await interaction.client.users.fetch(action.userId)
 

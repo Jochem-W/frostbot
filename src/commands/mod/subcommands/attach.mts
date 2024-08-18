@@ -1,15 +1,12 @@
 /**
  * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
  */
-import { Drizzle } from "../../../clients.mjs"
+import { Drizzle, Exchange, ProducerChannel } from "../../../clients.mjs"
+import { AmpqMessage } from "../../../handlers/rabbit.mjs"
 import { Colours } from "../../../models/colours.mjs"
 import { Config } from "../../../models/config.mjs"
 import { slashSubcommand } from "../../../models/slashCommand.mjs"
-import {
-  attachmentsTable,
-  actionsTable,
-  actionLogsTable,
-} from "../../../schema.mjs"
+import { attachmentsTable, actionsTable } from "../../../schema.mjs"
 import { attachmentsAreImages } from "../../../util/discord.mjs"
 import { uploadAttachments } from "../../../util/s3.mjs"
 import { formatTitle } from "../shared.mjs"
@@ -174,40 +171,16 @@ export const AttachSubcommand = slashSubcommand({
 
     await interaction.editReply({ embeds })
 
-    const actions = await Drizzle.select({
-      data: actionsTable,
-      log: actionLogsTable,
-    })
-      .from(actionsTable)
-      .where(eq(actionsTable.id, id))
-      .innerJoin(actionLogsTable, eq(actionLogsTable.actionId, actionsTable.id))
-
-    for (const action of actions) {
-      const channel = await interaction.client.channels.fetch(
-        action.log.channelId,
-      )
-      if (!channel?.isTextBased()) {
-        return
-      }
-
-      const message = await channel.messages.fetch(action.log.messageId)
-      const logEmbeds = message.embeds.map(
-        (embed) => new EmbedBuilder(embed.data),
-      )
-      logEmbeds[0]?.setURL(Config.url.external)
-      if (!logEmbeds[0]?.data.image) {
-        logEmbeds[0]?.setImage(fulfilled[0]?.value.url.toString() ?? null)
-        fulfilled.shift()
-      }
-
-      logEmbeds.push(
-        ...fulfilled.map((result) =>
-          new EmbedBuilder()
-            .setImage(result.value.url.toString())
-            .setURL(Config.url.external),
-        ),
-      )
-      await message.edit({ embeds: logEmbeds })
+    const amqpMessage: AmpqMessage = {
+      type: "attachments",
+      id,
+      attachments: fulfilled.map((f) => f.value.url.toString()),
     }
+
+    ProducerChannel.publish(
+      Exchange,
+      "",
+      Buffer.from(JSON.stringify(amqpMessage)),
+    )
   },
 })

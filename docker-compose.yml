@@ -15,6 +15,9 @@ services:
   #   networks:
   #     - caddy_caddy
   #     - default
+  rabbit:
+    image: rabbitmq:3
+    restart: unless-stopped
   bot:
     build: .
     env_file: .env
@@ -23,6 +26,7 @@ services:
     restart: unless-stopped
     depends_on:
       - db
+      - rabbit
 # networks:
 #   caddy_caddy:
 #     external: true

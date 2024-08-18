@@ -1,18 +1,12 @@
 /**
  * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
  */
-import { Drizzle } from "../clients.mjs"
+import { Exchange, ProducerChannel, Drizzle } from "../clients.mjs"
 import { modMenuLogFromDb } from "../messages/modMenuLog.mjs"
-import { Config } from "../models/config.mjs"
 import { handler } from "../models/handler.mjs"
-import { actionLogsTable, actionsTable } from "../schema.mjs"
-import { fetchChannel } from "../util/discord.mjs"
-import {
-  AuditLogEvent,
-  ChannelType,
-  GuildMember,
-  PartialGuildMember,
-} from "discord.js"
+import { actionsTable } from "../schema.mjs"
+import { AmpqMessage } from "./rabbit.mjs"
+import { AuditLogEvent, GuildMember, PartialGuildMember } from "discord.js"
 
 async function getAuditLogEntry(member: GuildMember | PartialGuildMember) {
   const auditLogs = await member.guild.fetchAuditLogs({
@@ -74,29 +68,25 @@ export const LogKick = handler({
       throw new Error(`Couldn't create a log for the kick of ${member.id}`)
     }
 
-    for (const channelId of Config.channels.mod) {
-      const channel = await fetchChannel(
-        member.client,
-        channelId,
-        ChannelType.GuildText,
-      )
-
-      if (
-        member.guild.id !== channel.guild.id &&
-        !channel.guild.members.cache.has(member.id)
-      ) {
-        continue
-      }
-
-      const message = await channel.send(
-        await modMenuLogFromDb(member.client, entry, channel.guild),
-      )
-
-      await Drizzle.insert(actionLogsTable).values({
-        messageId: message.id,
-        channelId,
-        actionId: entry.id,
-      })
+    const log = await modMenuLogFromDb(member.client, entry)
+    const ampqMessage: AmpqMessage = {
+      type: "create",
+      guild: {
+        id: member.guild.id,
+        name: member.guild.name,
+      },
+      target: entry.userId,
+      content: {
+        embeds: log.embeds.map((e) => e.toJSON()),
+        components: log.components.map((c) => c.toJSON()),
+      },
+      id: entry.id,
     }
+
+    ProducerChannel.publish(
+      Exchange,
+      "",
+      Buffer.from(JSON.stringify(ampqMessage)),
+    )
   },
 })

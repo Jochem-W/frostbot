@@ -12,6 +12,7 @@ const model = z
     NODE_ENV: z.string().optional().default("development"),
     S3_ACCESS_KEY_ID: z.string(),
     S3_SECRET_ACCESS_KEY: z.string(),
+    RABBIT_URL: z.string(),
   })
   .transform((arg) => camelcaseKeys(arg))
 

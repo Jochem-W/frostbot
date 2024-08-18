@@ -9,6 +9,7 @@ import { LogKick } from "./handlers/logKick.mjs"
 import { LogTimeout } from "./handlers/logTimeout.mjs"
 import { LogUnbans } from "./handlers/logUnbans.mjs"
 import { LogUntimeout } from "./handlers/logUntimeout.mjs"
+import { RabbitHandler } from "./handlers/rabbit.mjs"
 import { ReadyHandler } from "./handlers/readyHandler.mjs"
 import { UpdateLeaderboardOnJoin } from "./handlers/updateLeaderboardOnJoin.mjs"
 import { UpdateLeaderboardOnLeave } from "./handlers/updateLeaderboardOnLeave.mjs"
@@ -28,6 +29,7 @@ export const Handlers: Handler<keyof ClientEvents>[] = [
   LogUnbans,
   LogUntimeout,
   AddImageToLog,
+  RabbitHandler,
 ]
 
 if (Config.xp.enabled) {

@@ -425,7 +425,8 @@ export async function tryInsert({
           dmSuccess: dmStatus.success,
           actionSucess: actionStatus.success,
           deleteMessageSeconds,
-          timedOutUntil: action === "untimeout" ? timedOutUntil ?? null : null,
+          timedOutUntil:
+            action === "untimeout" ? (timedOutUntil ?? null) : null,
         },
       ])
       .returning({ id: actionsTable.id })
