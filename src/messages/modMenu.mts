@@ -275,21 +275,21 @@ function formatActionAsQuestion({
   return { title, components }
 }
 
-function actionControls(state: ModMenuState, permissions: ModMenuPermissions) {
+function actionControls(state: ModMenuState, _permissions: ModMenuPermissions) {
   const { action, body, dm, timeout } = state
-  const components = []
+  const components: ActionRowBuilder<MessageActionRowComponentBuilder>[] = []
 
   if (action === "restrain") {
-    if (permissions.restrain) {
-      components.push(
-        new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents(
-          new ButtonBuilder()
-            .setStyle(ButtonStyle.Primary)
-            .setLabel("Restrain user")
-            .setCustomId(confirmAction),
-        ),
-      )
-    }
+    // if (permissions.restrain) {
+    //   components.push(
+    //     new ActionRowBuilder<MessageActionRowComponentBuilder>().setComponents(
+    //       new ButtonBuilder()
+    //         .setStyle(ButtonStyle.Primary)
+    //         .setLabel("Restrain user")
+    //         .setCustomId(confirmAction),
+    //     ),
+    //   )
+    // }
 
     return {
       embeds: [
