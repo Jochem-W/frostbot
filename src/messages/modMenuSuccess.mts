@@ -57,7 +57,7 @@ export function modMenuSuccess(data: Data) {
     insertImagesStatus,
     state: { guild },
   } = data
-  if (actionStatus && actionStatus.success) {
+  if (actionStatus?.success) {
     if (dmStatus.success && insertStatus.success) {
       embed.setTitle("Success!").setColor(Colours.green[500])
     } else {

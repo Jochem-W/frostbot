@@ -29,7 +29,8 @@ export const RabbitHandler = handler({
 
     await ConsumerChannel.consume(
       Queue,
-      (message) => consumer(client, message).catch((e) => logError(client, e)),
+      (message) =>
+        void consumer(client, message).catch((e) => logError(client, e)),
       { exclusive: true },
     )
   },
