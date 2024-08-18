@@ -93,7 +93,8 @@ export const RevokeSubcommand = slashSubcommand({
               }`,
               iconURL: interaction.user.displayAvatarURL(),
             })
-            .setColor(Colours.red[500]),
+            .setColor(Colours.red[500])
+            .setTimestamp(interaction.createdAt),
         ],
       },
       id: action.id,
