@@ -9,12 +9,13 @@ export const JoinRoleStartupHandler = handler({
     const guild = await client.guilds.fetch(Config.guild)
     const members = await guild.members.fetch()
     for (const member of members.values()) {
-      if (!member.joinedTimestamp) {
+      if (!member.joinedAt) {
         continue
       }
 
-      const diff = DateTime.now()
-        .minus(DateTime.fromMillis(member.joinedTimestamp))
+      const diff = DateTime.fromJSDate(member.joinedAt)
+        .diffNow()
+        .negate()
         .toMillis()
       await member.roles.add(
         Object.entries(Config.joinRoles)
