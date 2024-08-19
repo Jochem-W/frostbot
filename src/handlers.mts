@@ -2,7 +2,10 @@
  * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
  */
 import { AddImageToLog } from "./handlers/addImageToLog.mjs"
+import { CancelJoinRoleHandler } from "./handlers/cancelJoinRole.mjs"
 import { InteractionHandler } from "./handlers/interactionHandler.mjs"
+import { JoinRoleHandler } from "./handlers/joinRole.mjs"
+import { JoinRoleStartupHandler } from "./handlers/joinRoleStartup.mjs"
 import { LevelRolesOnJoin } from "./handlers/levelRolesOnJoin.mjs"
 import { LogBans } from "./handlers/logBans.mjs"
 import { LogKick } from "./handlers/logKick.mjs"
@@ -30,6 +33,9 @@ export const Handlers: Handler<keyof ClientEvents>[] = [
   LogUntimeout,
   AddImageToLog,
   RabbitHandler,
+  JoinRoleHandler,
+  CancelJoinRoleHandler,
+  JoinRoleStartupHandler,
 ]
 
 if (Config.xp.enabled) {

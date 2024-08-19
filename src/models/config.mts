@@ -25,6 +25,7 @@ const model = z.object({
     region: z.string(),
     endpoint: z.string(),
   }),
+  joinRoles: z.record(z.number().min(1).max(2147483647)),
 })
 
 export const Config = await model.parseAsync(
