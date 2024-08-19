@@ -67,7 +67,7 @@ export const SocialsCommand = slashCommand({
           new ButtonBuilder()
             .setStyle(ButtonStyle.Link)
             .setLabel("Patreon")
-            .setEmoji(componentEmoji(emojis.get("kofi")))
+            .setEmoji(componentEmoji(emojis.get("patreon")))
             .setURL("https://www.patreon.com/zestylemonss"),
           new ButtonBuilder()
             .setStyle(ButtonStyle.Link)
