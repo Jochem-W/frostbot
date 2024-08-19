@@ -1,6 +1,7 @@
 /**
  * Licensed under AGPL 3.0 or newer. Copyright (C) 2024 Jochem W. <license (at) jochem (dot) cc>
  */
+import { BotCommand } from "./commands/bot.mjs"
 import { LeaderboardCommand } from "./commands/leaderboardCommand.mjs"
 import { ModCommand } from "./commands/mod/chatCommand.mjs"
 import { ModUserContextCommand } from "./commands/mod/userContextCommand.mjs"
@@ -16,6 +17,7 @@ import type { ApplicationCommandType, Snowflake } from "discord.js"
 export const SlashCommands: Command<ApplicationCommandType.ChatInput>[] = [
   ModCommand,
   ToggleInvitesCommand,
+  BotCommand,
 ]
 export const MessageContextMenuCommands: Command<ApplicationCommandType.Message>[] =
   []
