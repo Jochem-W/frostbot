@@ -5,6 +5,7 @@ import { BotCommand } from "./commands/bot.mjs"
 import { LeaderboardCommand } from "./commands/leaderboardCommand.mjs"
 import { ModCommand } from "./commands/mod/chatCommand.mjs"
 import { ModUserContextCommand } from "./commands/mod/userContextCommand.mjs"
+import { PaletteCommand } from "./commands/palette.mjs"
 import { RankCommand } from "./commands/rank/chatCommand.mjs"
 import { RankContextCommand } from "./commands/rank/contextMenuCommand.mjs"
 import { RestoreLevelCommand } from "./commands/restoreLevelCommand.mjs"
@@ -18,6 +19,7 @@ export const SlashCommands: Command<ApplicationCommandType.ChatInput>[] = [
   ModCommand,
   ToggleInvitesCommand,
   BotCommand,
+  PaletteCommand,
 ]
 export const MessageContextMenuCommands: Command<ApplicationCommandType.Message>[] =
   []
