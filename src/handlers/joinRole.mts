@@ -25,5 +25,7 @@ export const JoinRoleHandler = handler({
 })
 
 async function callback(member: GuildMember, role: string) {
-  await member.roles.add(role)
+  if (member.manageable) {
+    await member.roles.add(role)
+  }
 }

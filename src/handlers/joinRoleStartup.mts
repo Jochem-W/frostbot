@@ -9,7 +9,7 @@ export const JoinRoleStartupHandler = handler({
     const guild = await client.guilds.fetch(Config.guild)
     const members = await guild.members.fetch()
     for (const member of members.values()) {
-      if (!member.joinedAt) {
+      if (!member.joinedAt || !member.manageable) {
         continue
       }
 
