@@ -60,7 +60,7 @@ export const BotCommand = slashCommand({
           return
         }
 
-        await interaction.deferReply()
+        await interaction.deferReply({ ephemeral: true })
 
         const response = await fetch(image.url)
         if (!response.ok || !response.body) {
