@@ -74,3 +74,28 @@ export function attachmentsAreImages(
       new MIMEType(attachment.contentType).type !== "image",
   )
 }
+
+export function concatenate<Item>(
+  items: Iterable<Item>,
+  fn: (item: Item) => string,
+  maxLength: number,
+) {
+  let result: string | null = null
+  if (maxLength < 0) {
+    return result
+  }
+
+  result ??= ""
+
+  for (const item of items) {
+    // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+    const newResult: string = `${result}${fn(item)}`
+    if (newResult.length > maxLength) {
+      break
+    }
+
+    result = newResult
+  }
+
+  return result
+}
