@@ -25,6 +25,7 @@ const model = z.object({
     region: z.string(),
     endpoint: z.string(),
   }),
+  migrate: z.boolean().optional().default(true),
 })
 
 export const Config = await model.parseAsync(
