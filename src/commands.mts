@@ -11,6 +11,7 @@ import { RankContextCommand } from "./commands/rank/contextMenuCommand.mjs"
 import { RestoreLevelCommand } from "./commands/restoreLevelCommand.mjs"
 import { SocialsCommand } from "./commands/socials.mjs"
 import { ToggleInvitesCommand } from "./commands/toggleInvitesCommand.mjs"
+import { ToyhouseCommmand } from "./commands/toyhouse.mjs"
 import { XpCommand } from "./commands/xpCommand.mjs"
 import type { Command } from "./models/command.mjs"
 import { Config } from "./models/config.mjs"
@@ -22,6 +23,7 @@ export const SlashCommands: Command<ApplicationCommandType.ChatInput>[] = [
   BotCommand,
   PaletteCommand,
   SocialsCommand,
+  ToyhouseCommmand,
 ]
 export const MessageContextMenuCommands: Command<ApplicationCommandType.Message>[] =
   []

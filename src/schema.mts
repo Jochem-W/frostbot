@@ -67,4 +67,10 @@ export const actionLogsTable = pgTable("action_logs", {
   channelId: text("channel_id").notNull(),
 })
 
+export const toyhouseTable = pgTable("toyhouse", {
+  code: text("code").primaryKey(),
+  user: text("user").notNull(),
+  taken: text("taken").unique(),
+})
+
 export const insertActionsSchema = createInsertSchema(actionsTable)
