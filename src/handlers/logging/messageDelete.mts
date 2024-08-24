@@ -23,6 +23,10 @@ export const MessageDeleteHandler = handler({
   event: "messageDelete",
   once: false,
   async handle(message) {
+    if (!Config.channels.logs) {
+      return
+    }
+
     logChannel ??= await fetchChannel(
       message.client,
       Config.channels.logs,

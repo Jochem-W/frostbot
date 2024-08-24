@@ -23,6 +23,10 @@ export const MessageUpdateHandler = handler({
   event: "messageUpdate",
   once: false,
   async handle(oldMessage, newMessage) {
+    if (!Config.channels.logs) {
+      return
+    }
+
     logChannel ??= await fetchChannel(
       newMessage.client,
       Config.channels.logs,

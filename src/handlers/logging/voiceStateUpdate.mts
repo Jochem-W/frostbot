@@ -16,6 +16,10 @@ export const VoiceStateUpdate = handler({
   event: "voiceStateUpdate",
   once: false,
   async handle(oldState, newState) {
+    if (!Config.channels.logs) {
+      return
+    }
+
     logChannel ??= await fetchChannel(
       newState.client,
       Config.channels.logs,

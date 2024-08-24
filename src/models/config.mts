@@ -8,7 +8,7 @@ const model = z.object({
   channels: z.object({
     error: z.string().optional(),
     mod: z.string().array(),
-    logs: z.string(),
+    logs: z.string().optional(),
   }),
   levelRoles: z
     .record(z.string())

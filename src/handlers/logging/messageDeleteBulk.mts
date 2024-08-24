@@ -21,6 +21,10 @@ export const MessageDeleteBulkHandler = handler({
   event: "messageDeleteBulk",
   once: false,
   async handle(messages, channel) {
+    if (!Config.channels.logs) {
+      return
+    }
+
     if (channel.guildId !== Config.guild) {
       return
     }

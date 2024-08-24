@@ -42,13 +42,18 @@ export const Handlers: Handler<keyof ClientEvents>[] = [
   JoinRoleHandler,
   CancelJoinRoleHandler,
   JoinRoleStartupHandler,
-  GuildMemberAddHandler,
-  GuildMemberRemoveHandler,
-  MessageDeleteHandler,
-  MessageDeleteBulkHandler,
-  MessageUpdateHandler,
-  VoiceStateUpdate,
 ]
+
+if (Config.channels.logs) {
+  Handlers.push(
+    GuildMemberAddHandler,
+    GuildMemberRemoveHandler,
+    MessageDeleteHandler,
+    MessageDeleteBulkHandler,
+    MessageUpdateHandler,
+    VoiceStateUpdate,
+  )
+}
 
 if (Config.xp.enabled) {
   Handlers.push(

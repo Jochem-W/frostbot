@@ -18,6 +18,10 @@ export const GuildMemberAddHandler = handler({
   event: "guildMemberAdd",
   once: false,
   async handle(member) {
+    if (!Config.channels.logs) {
+      return
+    }
+
     logChannel ??= await fetchChannel(
       member.client,
       Config.channels.logs,
