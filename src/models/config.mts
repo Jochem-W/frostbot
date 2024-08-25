@@ -30,6 +30,7 @@ const model = z.object({
     endpoint: z.string(),
   }),
   joinRoles: z.record(z.number().min(1).max(2147483647)),
+  migrate: z.boolean().optional().default(true),
 })
 
 export const Config = await model.parseAsync(

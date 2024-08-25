@@ -32,4 +32,6 @@ const { queue } = await ConsumerChannel.assertQueue("", { exclusive: true })
 await ConsumerChannel.bindQueue(queue, Exchange, "")
 export const Queue = queue
 
-await migrate(Drizzle, { migrationsFolder: "./drizzle" })
+if (Config.migrate) {
+  await migrate(Drizzle, { migrationsFolder: "./drizzle" })
+}
