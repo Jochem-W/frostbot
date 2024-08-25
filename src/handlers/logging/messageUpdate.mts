@@ -37,6 +37,10 @@ export const MessageUpdateHandler = handler({
       newMessage = await newMessage.fetch()
     }
 
+    if (oldMessage.pinned !== null && oldMessage.pinned !== newMessage.pinned) {
+      return
+    }
+
     if (!newMessage.guildId || newMessage.guildId !== Config.guild) {
       return
     }
