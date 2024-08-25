@@ -67,7 +67,7 @@ export const ActSubcommand = slashSubcommand({
       type: "boolean",
       required: true,
       description:
-        "Send a DM to the user; always false for note, always true for warn",
+        "Send a DM to the user. Always false for note, and warn without DM becomes note.",
     },
     {
       name: "image1",
@@ -116,7 +116,7 @@ export const ActSubcommand = slashSubcommand({
     await interaction.deferReply({ ephemeral: true })
 
     const [actionName, actionExtra] = rawAction.split(":")
-    const action = await insertActionsSchema.shape.action.parseAsync(actionName)
+    let action = await insertActionsSchema.shape.action.parseAsync(actionName)
     const targetMember = await tryFetchMember(interaction.guild, targetUser)
 
     const state: ModMenuState = {
@@ -141,10 +141,16 @@ export const ActSubcommand = slashSubcommand({
           .parseAsync(actionExtra)
         break
       case "note":
+        dm = false
         state.dm = false
         break
       case "warn":
-        state.dm = true
+        if (state.dm) {
+          break
+        }
+
+        action = "note"
+        state.action = "note"
         break
     }
 
