@@ -39,7 +39,12 @@ export const ToyhouseCommmand = slashCommand({
           description: "Take a Toyhouse invite code",
           async handle(interaction) {
             const result:
-              | { type: "error"; error: "already_taken" | "no_codes" }
+              | {
+                  type: "error"
+                  error: "already_taken"
+                  data: typeof toyhouseTable.$inferSelect
+                }
+              | { type: "error"; error: "no_codes" }
               | { type: "data"; data: typeof toyhouseTable.$inferSelect } =
               await Drizzle.transaction(async (tx) => {
                 await tx.execute(
@@ -52,7 +57,7 @@ export const ToyhouseCommmand = slashCommand({
                   .where(eq(toyhouseTable.taken, interaction.user.id))
 
                 if (taken) {
-                  return { type: "error", error: "already_taken" }
+                  return { type: "error", error: "already_taken", data: taken }
                 }
 
                 const [row] = await tx
@@ -83,7 +88,8 @@ export const ToyhouseCommmand = slashCommand({
                       .setTitle("Code limit reached")
                       .setDescription(
                         "Toyhouse invite codes are limited to one per person, and you've previously taken a Toyhouse invite code.",
-                      ),
+                      )
+                      .setFields({ name: "Code", value: result.data.code }),
                   ],
                   ephemeral: true,
                 })
