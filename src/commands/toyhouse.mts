@@ -159,7 +159,7 @@ const addModal = modal({
         new EmbedBuilder()
           .setTitle(`Added ${inserted.length} Toyhouse invite codes`)
           .setDescription(
-            unorderedList(inserted.map(({ code }) => inlineCode(code))),
+            unorderedList(inserted.map(({ code }) => inlineCode(code))) || null,
           )
           .setFooter({ text: "If any codes are missing, please try again." }),
       ],
