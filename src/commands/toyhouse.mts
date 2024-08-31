@@ -139,7 +139,9 @@ const addModal = modal({
         .setStyle(TextInputStyle.Paragraph)
         .setLabel("Codes")
         .setMaxLength(2000)
-        .setPlaceholder("A list of Toyhouse codes separated by whitespace."),
+        .setPlaceholder(
+          'A list of Toyhouse codes separated by whitespace. For example: "PLiWzE5LYm S0EeZYm5QS PrA968sXBd".',
+        ),
     ),
   ],
   async handle(interaction, { codes }) {
