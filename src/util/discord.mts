@@ -99,3 +99,11 @@ export function concatenate<Item>(
 
   return result
 }
+
+export function ellipsis(text: string, maxLength: number) {
+  if (text.length <= maxLength) {
+    return text
+  }
+
+  return `${text.substring(0, 1023)}…`
+}

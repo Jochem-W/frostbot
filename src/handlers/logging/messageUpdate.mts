@@ -1,7 +1,7 @@
 import { Colours } from "../../models/colours.mjs"
 import { Config } from "../../models/config.mjs"
 import { handler } from "../../models/handler.mjs"
-import { fetchChannel, tryFetchMember } from "../../util/discord.mjs"
+import { ellipsis, fetchChannel, tryFetchMember } from "../../util/discord.mjs"
 import {
   ChannelType,
   EmbedBuilder,
@@ -84,9 +84,12 @@ export const MessageUpdateHandler = handler({
           value:
             oldMessage.content === null
               ? italic("Not cached")
-              : oldMessage.content || "\u200b",
+              : ellipsis(oldMessage.content, 1024) || "\u200b",
         },
-        { name: "After", value: newMessage.content || "\u200b" },
+        {
+          name: "After",
+          value: ellipsis(newMessage.content, 1024) || "\u200b",
+        },
       )
       .setFooter({ text: newMessage.id })
       .setTimestamp(newMessage.editedAt)
