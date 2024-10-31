@@ -10,11 +10,13 @@ import { AttachmentBuilder, CommandInteraction, User } from "discord.js"
 import { eq, sql } from "drizzle-orm"
 import puppeteer from "puppeteer"
 
-const browser = await puppeteer.launch({
-  headless: true,
-  defaultViewport: { width: 1024, height: 384 },
-  args: ["--no-sandbox"],
-})
+const browser = Config.xp.enabled
+  ? await puppeteer.launch({
+      headless: true,
+      defaultViewport: { width: 1024, height: 384 },
+      args: ["--no-sandbox"],
+    })
+  : (undefined as unknown as puppeteer.Browser)
 
 addExitListener(async () => await browser.close())
 
