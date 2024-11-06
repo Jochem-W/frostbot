@@ -1,32 +1,39 @@
 services:
   db:
-    container_name: frostbot-db
-    image: postgres:16
-    env_file: .env.db
+    image: postgres:17
     environment:
-      POSTGRES_USER: frostbot
+      POSTGRES_USER: "frostbot"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
     volumes:
-      - ./persisted/db/data:/var/lib/postgresql/data
+      - frostbot-data:/var/lib/postgresql/data
     restart: unless-stopped
-  # webapp:
-  #   container_name: frostbot-app
-  #   build: ../frostbot-app
-  #   restart: unless-stopped
-  #   networks:
-  #     - caddy_caddy
-  #     - default
   rabbit:
-    image: rabbitmq:3
+    image: rabbitmq:4
     restart: unless-stopped
-  bot:
-    build: .
-    env_file: .env
-    volumes:
-      - ./persisted/bot:/app/persisted/bot
+  lemontree:
+    build: ./lemontree
+    environment:
+      BOT_TOKEN: "${LEMON_TREE_TOKEN}"
+      DATABASE_URL: "postgresql://frostbot:${POSTGRES_PASSWORD}@db/frostbot"
+      S3_ACCESS_KEY_ID: "${S3_ACCESS_KEY_ID}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+      RABBIT_URL: "amqp://guest:guest@rabbit"
     restart: unless-stopped
     depends_on:
       - db
       - rabbit
-# networks:
-#   caddy_caddy:
-#     external: true
+  lucani:
+    build: ./lucani
+    environment:
+      BOT_TOKEN: "${LUCANI_TOKEN}"
+      DATABASE_URL: "postgresql://frostbot:${POSTGRES_PASSWORD}@db/frostbot"
+      S3_ACCESS_KEY_ID: "${S3_ACCESS_KEY_ID}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY}"
+      RABBIT_URL: "amqp://guest:guest@rabbit"
+    restart: unless-stopped
+    depends_on:
+      - db
+      - rabbit
+
+volumes:
+  frostbot-data:
