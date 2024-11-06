@@ -7,17 +7,6 @@ import { Variables } from "./models/variables.mjs"
 import { logError } from "./util/error.mjs"
 import { Client, ClientEvents, GatewayIntentBits, Partials } from "discord.js"
 
-async function handlerWrapper<T extends keyof ClientEvents>(
-  handler: Handler<T>,
-  ...args: ClientEvents[T]
-) {
-  try {
-    await handler.handle(...args)
-  } catch (e) {
-    await logError(discord, e)
-  }
-}
-
 const discord = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -38,18 +27,26 @@ const discord = new Client({
   ],
 })
 
+async function listener<T extends keyof ClientEvents>(
+  handler: Handler<T>,
+  ...args: ClientEvents[T]
+) {
+  try {
+    await handler.handle(...args)
+  } catch (e) {
+    await logError(discord, e)
+  }
+}
+
 for (const handler of Handlers) {
   console.log("Registering handler for", handler.event)
 
   if (handler.once) {
-    discord.once(
-      handler.event,
-      (...args) => void handlerWrapper(handler, ...args),
-    )
+    discord.once(handler.event, (...args) => void listener(handler, ...args))
     continue
   }
 
-  discord.on(handler.event, (...args) => void handlerWrapper(handler, ...args))
+  discord.on(handler.event, (...args) => void listener(handler, ...args))
 }
 
 await discord.login(Variables.botToken)
