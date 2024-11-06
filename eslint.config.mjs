@@ -17,6 +17,7 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
       "@typescript-eslint/non-nullable-type-assertion-style": "off",
+      "@typescript-eslint/no-deprecated": "error",
     },
   },
 )

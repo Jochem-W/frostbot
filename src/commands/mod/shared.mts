@@ -383,6 +383,7 @@ export async function tryAction({
         return { success: false, error: "unhandled" }
     }
   } catch (e) {
+    console.log(e)
     return { success: false, error: "unknown" }
   }
 

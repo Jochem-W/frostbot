@@ -12,14 +12,14 @@ import {
 
 type InferModalValues<
   T extends readonly unknown[],
-  R extends object | unknown = unknown,
+  R extends object = object,
 > = T extends readonly [infer TH, ...infer TT]
   ? InferModalValues<
       TT,
       TH extends ReturnType<typeof modalInput>
         ? TH["required"] extends true
-          ? R & { [P in TH["id"]]: string }
-          : R & { [P in TH["id"]]?: string }
+          ? R & Record<TH["id"], string>
+          : R & Partial<Record<TH["id"], string>>
         : R
     >
   : R
