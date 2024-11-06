@@ -107,7 +107,7 @@ async function revoked(
     .where(eq(actionLogsTable.actionId, id))
   for (const log of logs) {
     const channel = client.channels.cache.get(log.channelId)
-    if (!channel?.isTextBased()) {
+    if (!channel?.isSendable()) {
       continue
     }
 

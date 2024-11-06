@@ -13,21 +13,25 @@ import {
   Permissions,
 } from "discord.js"
 
-type Interaction<T extends ContextMenuCommandType> =
+type CustomContextMenuCommandType =
+  | ApplicationCommandType.Message
+  | ApplicationCommandType.User
+
+type Interaction<T extends CustomContextMenuCommandType> =
   T extends ApplicationCommandType.Message
     ? MessageContextMenuCommandInteraction
     : T extends ApplicationCommandType.User
       ? UserContextMenuCommandInteraction
       : never
 
-type Value<T extends ContextMenuCommandType> =
+type Value<T extends CustomContextMenuCommandType> =
   T extends ApplicationCommandType.Message
     ? Message
     : T extends ApplicationCommandType.User
       ? User
       : never
 
-export function contextMenuCommand<T extends ContextMenuCommandType>({
+export function contextMenuCommand<T extends CustomContextMenuCommandType>({
   name,
   type,
   integrationTypes,
@@ -46,7 +50,7 @@ export function contextMenuCommand<T extends ContextMenuCommandType>({
 }) {
   const builder = new ContextMenuCommandBuilder()
     .setName(name)
-    .setType(type)
+    .setType(type as ContextMenuCommandType)
     .setDefaultMemberPermissions(defaultMemberPermissions)
 
   // @ts-expect-error Not implemented in discord.js yet
