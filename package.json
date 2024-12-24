@@ -27,7 +27,7 @@
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "@trivago/prettier-plugin-sort-imports": "^5.2.0",
-    "@tsconfig/node22": "^22.0.0",
+    "@tsconfig/node23": "^23.0.0",
     "@tsconfig/strictest": "^2.0.5",
     "@types/amqplib": "^0.10.6",
     "@types/eslint__js": "^8.42.3",

@@ -61,9 +61,9 @@ importers:
       '@trivago/prettier-plugin-sort-imports':
         specifier: ^5.2.0
         version: 5.2.0(prettier@3.4.2)
-      '@tsconfig/node22':
-        specifier: ^22.0.0
-        version: 22.0.0
+      '@tsconfig/node23':
+        specifier: ^23.0.0
+        version: 23.0.0
       '@tsconfig/strictest':
         specifier: ^2.0.5
         version: 2.0.5
@@ -939,8 +939,8 @@ packages:
       svelte:
         optional: true
 
-  '@tsconfig/node22@22.0.0':
-    resolution: {integrity: sha512-twLQ77zevtxobBOD4ToAtVmuYrpeYUh3qh+TEp+08IWhpsrIflVHqQ1F1CiPxQGL7doCdBIOOCF+1Tm833faNg==}
+  '@tsconfig/node23@23.0.0':
+    resolution: {integrity: sha512-a2qO9QOEWnomKbFFE3XlOJ5za6Sc+XduxQkFpah42enbTPFPaW0QzKw616KDNfmMLPhXMwCw4EHVjcKaFOj/OA==}
 
   '@tsconfig/strictest@2.0.5':
     resolution: {integrity: sha512-ec4tjL2Rr0pkZ5hww65c+EEPYwxOi4Ryv+0MtjeaSQRJyq322Q27eOQiFbuNgw2hpL4hB1/W/HBGk3VKS43osg==}
@@ -3195,7 +3195,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tsconfig/node22@22.0.0': {}
+  '@tsconfig/node23@23.0.0': {}
 
   '@tsconfig/strictest@2.0.5': {}
 
