@@ -20,11 +20,8 @@ import type { ApplicationCommandType, Snowflake } from "discord.js"
 export const SlashCommands: Command<ApplicationCommandType.ChatInput>[] = [
   ModCommand,
   ToggleInvitesCommand,
-  BotCommand,
-  PaletteCommand,
-  SocialsCommand,
-  ToyhouseCommmand,
 ]
+
 export const MessageContextMenuCommands: Command<ApplicationCommandType.Message>[] =
   []
 
@@ -41,4 +38,13 @@ if (Config.xp.enabled) {
   SlashCommands.push(RankCommand, XpCommand, LeaderboardCommand)
   MessageContextMenuCommands.push(RestoreLevelCommand)
   UserContextMenuCommands.push(RankContextCommand)
+}
+
+if (Config.fun) {
+  SlashCommands.push(
+    BotCommand,
+    PaletteCommand,
+    SocialsCommand,
+    ToyhouseCommmand,
+  )
 }

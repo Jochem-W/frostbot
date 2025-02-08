@@ -30,6 +30,7 @@ const model = z.object({
     endpoint: z.string(),
   }),
   migrate: z.boolean().optional().default(true),
+  fun: z.boolean().optional(),
 })
 
 export const Config = await model.parseAsync(
