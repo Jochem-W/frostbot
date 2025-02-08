@@ -1,7 +1,5 @@
 {
-  "id": "948ed627-89d9-4c2c-8d76-f6836ec94a3d",
-  "prevId": "acb4e850-cfbe-407a-ad06-3168eaf4fac3",
-  "version": "6",
+  "version": "7",
   "dialect": "postgresql",
   "tables": {
     "public.action_logs": {
@@ -38,25 +36,25 @@
         "action_logs_action_id_actions_id_fk": {
           "name": "action_logs_action_id_actions_id_fk",
           "tableFrom": "action_logs",
-          "tableTo": "actions",
           "columnsFrom": [
             "action_id"
           ],
+          "tableTo": "actions",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "action_logs_message_id_unique": {
           "name": "action_logs_message_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "message_id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
@@ -191,15 +189,15 @@
         "attachments_action_id_actions_id_fk": {
           "name": "attachments_action_id_actions_id_fk",
           "tableFrom": "attachments",
-          "tableTo": "actions",
           "columnsFrom": [
             "action_id"
           ],
+          "tableTo": "actions",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -270,8 +268,11 @@
   },
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "948ed627-89d9-4c2c-8d76-f6836ec94a3d",
+  "prevId": "acb4e850-cfbe-407a-ad06-3168eaf4fac3",
+  "sequences": {}
 }

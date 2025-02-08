@@ -1,4 +1,6 @@
 {
+  "id": "7120c23a-8af6-4f69-ae86-839de1c2efa2",
+  "prevId": "948ed627-89d9-4c2c-8d76-f6836ec94a3d",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -36,32 +38,25 @@
         "action_logs_action_id_actions_id_fk": {
           "name": "action_logs_action_id_actions_id_fk",
           "tableFrom": "action_logs",
+          "tableTo": "actions",
           "columnsFrom": [
             "action_id"
           ],
-          "tableTo": "actions",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "action_logs_action_id_unique": {
-          "name": "action_logs_action_id_unique",
-          "columns": [
-            "action_id"
-          ],
-          "nullsNotDistinct": false
-        },
         "action_logs_message_id_unique": {
           "name": "action_logs_message_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "message_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -116,7 +111,7 @@
           "name": "timeout",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "timestamp": {
           "name": "timestamp",
@@ -140,7 +135,7 @@
           "name": "delete_message_seconds",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "timed_out_until": {
           "name": "timed_out_until",
@@ -196,19 +191,55 @@
         "attachments_action_id_actions_id_fk": {
           "name": "attachments_action_id_actions_id_fk",
           "tableFrom": "attachments",
+          "tableTo": "actions",
           "columnsFrom": [
             "action_id"
           ],
-          "tableTo": "actions",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
+    },
+    "public.toyhouse": {
+      "name": "toyhouse",
+      "schema": "",
+      "columns": {
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user": {
+          "name": "user",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "taken": {
+          "name": "taken",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "toyhouse_taken_unique": {
+          "name": "toyhouse_taken_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "taken"
+          ]
+        }
+      }
     },
     "public.users": {
       "name": "users",
@@ -274,12 +305,10 @@
     }
   },
   "schemas": {},
+  "sequences": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "id": "acb4e850-cfbe-407a-ad06-3168eaf4fac3",
-  "prevId": "00000000-0000-0000-0000-000000000000",
-  "sequences": {}
+    "tables": {}
+  }
 }

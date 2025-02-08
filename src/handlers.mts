@@ -9,6 +9,12 @@ import { LogKick } from "./handlers/logKick.mjs"
 import { LogTimeout } from "./handlers/logTimeout.mjs"
 import { LogUnbans } from "./handlers/logUnbans.mjs"
 import { LogUntimeout } from "./handlers/logUntimeout.mjs"
+import { GuildMemberAddHandler } from "./handlers/logging/guildMemberAdd.mjs"
+import { GuildMemberRemoveHandler } from "./handlers/logging/guildMemberRemove.mjs"
+import { MessageDeleteHandler } from "./handlers/logging/messageDelete.mjs"
+import { MessageDeleteBulkHandler } from "./handlers/logging/messageDeleteBulk.mjs"
+import { MessageUpdateHandler } from "./handlers/logging/messageUpdate.mjs"
+import { VoiceStateUpdate } from "./handlers/logging/voiceStateUpdate.mjs"
 import { RabbitHandler } from "./handlers/rabbit.mjs"
 import { ReadyHandler } from "./handlers/readyHandler.mjs"
 import { UpdateLeaderboardOnJoin } from "./handlers/updateLeaderboardOnJoin.mjs"
@@ -31,6 +37,17 @@ export const Handlers: Handler<keyof ClientEvents>[] = [
   AddImageToLog,
   RabbitHandler,
 ]
+
+if (Config.channels.logs) {
+  Handlers.push(
+    GuildMemberAddHandler,
+    GuildMemberRemoveHandler,
+    MessageDeleteHandler,
+    MessageDeleteBulkHandler,
+    MessageUpdateHandler,
+    VoiceStateUpdate,
+  )
+}
 
 if (Config.xp.enabled) {
   Handlers.push(

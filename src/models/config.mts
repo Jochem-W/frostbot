@@ -5,7 +5,11 @@ import { readFile } from "fs/promises"
 import { z } from "zod"
 
 const model = z.object({
-  channels: z.object({ error: z.string().optional(), mod: z.string().array() }),
+  channels: z.object({
+    error: z.string().optional(),
+    mod: z.string().array(),
+    logs: z.string().optional(),
+  }),
   levelRoles: z
     .record(z.string())
     .transform((arg) => new Map(Object.entries(arg))),
@@ -26,6 +30,7 @@ const model = z.object({
     endpoint: z.string(),
   }),
   migrate: z.boolean().optional().default(true),
+  fun: z.boolean().optional(),
 })
 
 export const Config = await model.parseAsync(

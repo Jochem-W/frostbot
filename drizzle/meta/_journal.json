@@ -15,6 +15,13 @@
       "when": 1716207959163,
       "tag": "0001_magical_maverick",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1724525553405,
+      "tag": "0002_sparkling_jimmy_woo",
+      "breakpoints": true
     }
   ]
 }

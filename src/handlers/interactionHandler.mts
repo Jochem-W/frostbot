@@ -104,7 +104,6 @@ export const InteractionHandler = handler({
   event: "interactionCreate",
   once: false,
   async handle(interaction) {
-    const start = performance.now()
     try {
       switch (interaction.type) {
         case InteractionType.ApplicationCommand:
@@ -139,7 +138,5 @@ export const InteractionHandler = handler({
       await interaction.reply({ embeds, ephemeral: true })
       throw e
     }
-
-    console.log("Took", performance.now() - start)
   },
 })

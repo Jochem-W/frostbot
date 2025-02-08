@@ -29,7 +29,7 @@ ENV NODE_ENV=production \
 WORKDIR /app
 
 # Install Chromium
-RUN apk add --no-cache chromium
+RUN apk add --no-cache chromium imagemagick
 
 # Copy all files (including source :/)
 COPY --from=builder /app .
